@@ -11,5 +11,9 @@ const mix = require('laravel-mix')
 |
 */
 
-mix.css('resources/scss/app.scss', 'public/css')
+mix.sass('resources/scss/app.scss', 'public/css')
+   .js('resources/js/jsx-render.js', 'public/js')
+   .js('resources/js/home.jsx', 'public/js')
    .js('resources/js/app.js', 'public/js')
+   .sourceMaps(false, 'source-map')
+   .disableNotifications()

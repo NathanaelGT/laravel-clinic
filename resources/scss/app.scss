@@ -1,0 +1,24 @@
+.row {
+  margin: 0;
+}
+
+.services > .card {
+  padding: 0;
+}
+
+.service-card > div {
+  cursor: pointer;
+  user-select: none;
+}
+
+$day-width: 59px;
+.card-text {
+  > span {
+    display: inline-block;
+    min-width: $day-width !important;
+  }
+}
+
+.service-info {
+  white-space: nowrap;
+}
