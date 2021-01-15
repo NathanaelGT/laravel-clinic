@@ -10,10 +10,12 @@
       <h4 class="ps-3">Layanan yang tersedia:</h4>
       <div class="row">
 
+        @php $index = 0 @endphp
         @foreach ($services as $servicesSection)
         <div class="col-xl-4 offset-xl-0 col-md-10 offset-md-1">
           @foreach ($servicesSection as $service)
-          <x-service :service="$service" />
+          <x-service :service="$service" :doctors="$doctors[$index]" />
+          @php $index++ @endphp
           @endforeach
         </div>
         @endforeach
@@ -25,7 +27,8 @@
 
   <x-slot name="script">
     <script>
-      window.workingHours = {!! json_encode($workingHours) !!}
+      window.doctors = {!! json_encode($doctors) !!}
+      window.workingSchedules = {!! json_encode($workingSchedules) !!}
     </script>
     <script src="{{ mix('js/home.js') }}"></script>
   </x-slot>

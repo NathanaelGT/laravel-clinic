@@ -18,6 +18,7 @@
 </head>
 
 <body>
+  <x-navbar />
   {{ $slot }}
 
   <script

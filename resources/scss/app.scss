@@ -22,3 +22,7 @@ $day-width: 59px;
 .service-info {
   white-space: nowrap;
 }
+
+.doctors-name > span {
+  cursor: pointer;
+}
