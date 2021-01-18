@@ -5,6 +5,9 @@
   </div>
 
   <x-slot name="script">
+    <script>
+      window.services = {!! json_encode(config('global.services')) !!}
+    </script>
     <script src="{{ mix('js/admin/newService.js') }}"></script>
   </x-slot>
 </x-app>

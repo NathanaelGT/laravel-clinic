@@ -2,12 +2,9 @@ const container = registerRender(document.getElementById('form-container'))
 
 const Input = ({
   placeholder, name, type = 'text', oninput = null, value = '',
-  onkeypress = null, showPage = false, errorMessage = null
-}) => (
-  <div>
-    <label htmlFor={name}>{placeholder}</label>
-    {showPage && <label className="float-end">Halaman {currentIndex + 1}</label>}
-
+  onkeypress = null, showPage = false, errorMessage = null, list = null
+}) => {
+  const input = (
     <input
       id={name}
       name={name}
@@ -20,11 +17,21 @@ const Input = ({
       autocomplete="off"
       required
     />
-    <div className={`form-text text-danger ${!errorMessage && 'input-valid-text'}`}>
-      {errorMessage || '\xA0'}
+  )
+  if (list) input.setAttribute('list', list)
+
+  return (
+    <div>
+      <label htmlFor={name}>{placeholder}</label>
+      {showPage && <label className="float-end">Halaman {currentIndex + 1}</label>}
+      {input}
+
+      <div className={`form-text text-danger ${!errorMessage && 'input-valid-text'}`}>
+        {errorMessage || '\xA0'}
+      </div>
     </div>
-  </div>
-)
+  )
+}
 
 const InlineCheckbox = (value, index) => (
   <div className="form-check form-check-inline">
@@ -84,7 +91,14 @@ const Form = () => (
           }}
           showPage
           errorMessage={errorMessages[currentIndex].service}
+          list="services"
         />
+
+        <datalist id="services">
+          {window.services.map(service => (
+            <option value={service} />
+          ))}
+        </datalist>
       </div>
 
       <div className="row py-1">
