@@ -19,6 +19,7 @@ const Input = ({
     />
   )
   if (list) input.setAttribute('list', list)
+  if (type === 'number') input.min = 1
 
   return (
     <div>
@@ -33,16 +34,19 @@ const Input = ({
   )
 }
 
-const InlineCheckbox = (value, index) => (
+const InlineCheckbox = value => (
   <div className="form-check form-check-inline">
     <input
       className="form-check-input"
       type="checkbox"
       id={value}
       value={value}
-      checked={dayValue[currentIndex]?.[index] === value}
+      checked={dayValue[currentIndex].indexOf(value) !== -1}
       onchange={event => {
-        dayValue[currentIndex][index] = event.target.checked ? value : null
+        if (event.target.checked)
+          dayValue[currentIndex].push(value)
+        else
+          dayValue[currentIndex] = dayValue[currentIndex].filter(day => day !== value)
       }}
     />
     <label className="form-check-label" htmlFor={value}>{value}</label>
@@ -50,15 +54,16 @@ const InlineCheckbox = (value, index) => (
 )
 
 let serviceName = ''
+let doctorName = ''
 const timeInputValue = [[]]
-const quotaValue = [[]]
+const quotaValue = ['']
 const dayValue = [[]]
 let highestIndex = 0
 let currentIndex = 0
 
 const errorMessages = [[]]
 
-const searchInvalid = () => {
+const searchValid = () => {
   const timeError = []
   for (let i = 0; i < 2; i++) {
     if (!timeInputValue[currentIndex]?.[i])
@@ -66,20 +71,89 @@ const searchInvalid = () => {
   }
   const dayInvalid = dayValue[currentIndex]?.filter(value => value !== null)?.length === 0
 
-  errorMessages[currentIndex] = {
-    service: serviceName === '' && 'Harap isi nama layanan',
-    time: timeError,
-    quota: quotaValue[currentIndex]?.length === 0 && 'Harap tentukan kuota',
-    day: dayInvalid && 'Harap pilih hari praktek'
-  }
+  const data = {}
+  if (doctorName === '') data.doctor = 'Harap isi nama dokter'
+  if (serviceName === '') data.service = 'Harap isi nama layanan'
+  if (timeError.length) data.time = timeError
+  if (quotaValue[currentIndex]?.length === 0) data.quota = 'Harap tentukan kuota'
+  if (dayInvalid) data.day = 'Harap pilih hari praktek'
+  errorMessages[currentIndex] = Object.keys(data).length ? { ...data } : null
 
-  return Object.values(errorMessages[currentIndex]).filter(value => value.length).length
+  return !Object.keys(data).length
+}
+
+const getButtonsData = () => (
+  [
+    {
+      className: `col-12 col-sm-3 ${window.innerWidth >= 576 ? 'ps-0' : ' mb-3'}`,
+      color: 'outline-primary',
+      text: 'Sebelumnya',
+      disabled: currentIndex === 0,
+      onclick: () => {
+        if (currentIndex > 0) {
+          if (errorMessages[currentIndex] === null)
+            currentIndex--
+          container.render(<Form />)
+        }
+      }
+    },
+    {
+      className: 'col-12 col-sm-6',
+      color: 'primary',
+      text: 'Tambahkan',
+      type: 'submit'
+    },
+    {
+      className: `col-12 col-sm-3 ${window.innerWidth >= 576 ? 'pe-0' : ' mt-3'}`,
+      color: 'outline-primary',
+      text: 'Selanjutnya',
+      onclick: () => {
+        if (
+          timeInputValue[currentIndex].length !== 0 ||
+          quotaValue[currentIndex] !== '' ||
+          dayValue[currentIndex].length !== 0
+        ) {
+          if (searchValid()) currentIndex++
+          if (currentIndex > highestIndex) {
+            highestIndex = currentIndex
+            timeInputValue[currentIndex] = []
+            quotaValue[currentIndex] = ''
+            dayValue[currentIndex] = []
+            errorMessages[currentIndex] = null
+          }
+        }
+        else
+          errorMessages[currentIndex] = null
+
+        container.render(<Form />)
+      }
+    }
+  ]
+)
+
+const handleSubmit = event => {
+  event.preventDefault()
+
+  // TODO
 }
 
 const Form = () => (
-  <form className="d-flex flex-column justify-content-between align-items-center h-100">
+  <form className="d-flex flex-column justify-content-between align-items-center h-100" onsubmit={handleSubmit}>
     <div className="w-100">
       <h3 className="text-center pb-4">Buat Layanan Baru</h3>
+
+      <div className="py-1">
+        <Input
+          placeholder="Nama Dokter"
+          name="service"
+          value={doctorName}
+          oninput={event => {
+            doctorName = event.target.value
+          }}
+          showPage
+          errorMessage={errorMessages[currentIndex]?.doctor}
+        />
+      </div>
 
       <div className="py-1">
         <Input
@@ -89,8 +163,7 @@ const Form = () => (
           oninput={event => {
             serviceName = event.target.value
           }}
-          showPage
-          errorMessage={errorMessages[currentIndex].service}
+          errorMessage={errorMessages[currentIndex]?.service}
           list="services"
         />
 
@@ -114,7 +187,7 @@ const Form = () => (
                 timeInputValue[currentIndex][index] = event.target.value
               }}
               value={timeInputValue[currentIndex]?.[index]}
-              errorMessage={errorMessages[currentIndex].time?.[index]}
+              errorMessage={errorMessages[currentIndex]?.time?.[index]}
             />
           </div>
         ))}
@@ -133,7 +206,7 @@ const Form = () => (
           quotaValue[currentIndex] = event.target.value
         }}
         value={quotaValue[currentIndex]}
-        errorMessage={errorMessages[currentIndex].quota}
+        errorMessage={errorMessages[currentIndex]?.quota}
       />
     </div>
 
@@ -150,56 +223,13 @@ const Form = () => (
         ))}
       </div>
       <div className="d-flex justify-content-center">
-        <div className={`form-text text-danger ${!errorMessages[currentIndex].day && 'input-valid-text'}`}>
-          {errorMessages[currentIndex].day || '\xA0'}
+        <div className={`form-text text-danger ${!errorMessages[currentIndex]?.day && 'input-valid-text'}`}>
+          {errorMessages[currentIndex]?.day || '\xA0'}
         </div>
       </div>
 
       <div className="row my-4">
-        {[
-          {
-            className: `col-12 col-sm-3 ${window.innerWidth >= 576 ? 'ps-0' : ' mb-3'}`,
-            color: 'outline-primary',
-            text: 'Sebelumnya',
-            disabled: currentIndex === 0,
-            onclick: () => {
-              if (currentIndex > 0) {
-                const isValid = searchInvalid()
-
-                if (isValid) {
-                  errorMessages[currentIndex] = []
-                  currentIndex--
-                }
-                container.render(<Form />)
-              }
-            }
-          },
-          {
-            className: 'col-12 col-sm-6',
-            color: 'primary',
-            text: 'Tambahkan',
-            type: 'submit'
-          },
-          {
-            className: `col-12 col-sm-3 ${window.innerWidth >= 576 ? 'pe-0' : ' mt-3'}`,
-            color: 'outline-primary',
-            text: 'Selanjutnya',
-            onclick: () => {
-              const isValid = !searchInvalid()
-
-              if (isValid) currentIndex++
-              if (currentIndex > highestIndex) {
-                highestIndex = currentIndex
-                timeInputValue[currentIndex] = []
-                quotaValue[currentIndex] = []
-                dayValue[currentIndex] = []
-                errorMessages[currentIndex] = []
-              }
-
-              container.render(<Form />)
-            }
-          }
-        ].map(({ className, color, text, type, disabled = false, onclick = null }) => (
+        {getButtonsData().map(({ className, color, text, type, disabled = false, onclick = null }) => (
           <div className={className}>
             <div className="d-grid">
               <button
