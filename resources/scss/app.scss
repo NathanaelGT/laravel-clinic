@@ -1,3 +1,13 @@
+$navbarHeight: 50px;
+
+body {
+  min-height: 100vh;
+
+  > nav {
+    height: $navbarHeight !important;
+  }
+}
+
 .row {
   margin: 0;
 }
@@ -25,4 +35,13 @@ $day-width: 59px;
 
 .doctors-name > span {
   cursor: pointer;
+}
+
+/* admin */
+.new-service {
+  min-height: calc(100vh - #{$navbarHeight});
+}
+
+.input-valid-text {
+  user-select: none;
 }

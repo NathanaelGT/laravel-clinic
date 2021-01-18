@@ -9,7 +9,7 @@ handleDivClick = (index, scheduleIndex) => () => {
 
 const HourInfo = ({ index, scheduleIndex }) => (
   <div onclick={handleDivClick(index, scheduleIndex)}>
-    <p className="card-text me-1 mb-1 service-info">
+    <p className="card-text mb-1 service-info">
       Jam praktek Dr. {doctors[index][scheduleIndex]}{showDetail[index] ? ':' : ' hari ini:'}
     </p>
     {showDetail[index] ? (

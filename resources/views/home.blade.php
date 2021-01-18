@@ -1,6 +1,6 @@
 <x-app>
   <div class="row">
-    <div class="col-md-10 offset-md-1 my-5">
+    <div class="col-md-10 offset-md-1 my-3">
       <h1>Klinik Foo Bar</h1>
       <h3>Lorem ipsum dolor sit amet consectetur adipisicing elit. Vero quae sint laudantium ducimus maiores facere possimus perspiciatis odit aliquid qui. Sapiente voluptatibus vitae facere delectus nihil odit necessitatibus praesentium fugiat.</h3>
     </div>

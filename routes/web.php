@@ -20,4 +20,8 @@ use App\Http\Controllers\PatientRegistrationController;
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/daftar', [PatientRegistrationController::class, 'index'])->name('patient-registration');
 
+Route::group(['prefix' => 'admin'], function () {
+    Route::get('new-service', fn () => view('admin.new-service'));
+});
+
 Auth::routes();
