@@ -1,3 +1,5 @@
+import MultipleInput from '../component/MultipleInput'
+
 const container = registerRender(document.getElementById('form-container'))
 
 const Input = ({
@@ -10,6 +12,7 @@ const Input = ({
       name={name}
       type={type}
       placeholder={`Masukkan ${placeholder.toLowerCase()}`}
+      ariaLabel={placeholder}
       oninput={oninput}
       onkeypress={onkeypress}
       value={value}
@@ -207,6 +210,15 @@ const Form = () => (
         }}
         value={quotaValue[currentIndex]}
         errorMessage={errorMessages[currentIndex]?.quota}
+      />
+
+      <MultipleInput
+        name="test"
+        leftPlaceholder="Kuota"
+        separator="Per"
+        middlePlaceholder="Waktu"
+        rightPlaceholder="Satuan"
+        options={['Sesi', 'Jam', 'Menit']}
       />
     </div>
 
