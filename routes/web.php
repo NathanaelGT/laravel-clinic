@@ -22,6 +22,7 @@ Route::get('/daftar', [PatientRegistrationController::class, 'index'])->name('pa
 
 Route::group(['prefix' => 'admin'], function () {
     Route::get('new-service', fn () => view('admin.new-service'));
+    Route::get('patient-list', fn () => view('admin.patient-list'));
 });
 
 Auth::routes();

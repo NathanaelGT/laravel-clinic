@@ -45,3 +45,19 @@ $day-width: 59px;
 .input-valid-text {
   user-select: none;
 }
+
+.table-patient-list {
+  min-width: 1050px;
+
+  > tbody > tr > td {
+    & {
+      vertical-align: middle;
+      text-align: center;
+    }
+
+    &:nth-child(2),
+    &:nth-child(3) {
+      text-align: left;
+    }
+  }
+}
