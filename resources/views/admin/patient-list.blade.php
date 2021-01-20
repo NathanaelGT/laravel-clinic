@@ -30,7 +30,12 @@
                 Selesai
               </a>
               <a href="#" class="btn btn-danger">Batal</a>
-              <a href="#" class="btn btn-warning text-white">Ubah</a>
+              <a
+                href="{{ route('admin@patient-reschedule', ['id' => $patient->id]) }}"
+                class="btn btn-warning text-white"
+              >
+                Ubah
+              </a>
             </td>
           </tr>
           @endforeach
