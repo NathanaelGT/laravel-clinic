@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\PatientRegistrationController;
+use App\Http\Controllers\Admin\PatientController;
 
 /*
 |--------------------------------------------------------------------------
@@ -22,7 +23,7 @@ Route::get('/daftar', [PatientRegistrationController::class, 'index'])->name('pa
 
 Route::group(['prefix' => 'admin'], function () {
     Route::get('new-service', fn () => view('admin.new-service'));
-    Route::get('patient-list', fn () => view('admin.patient-list'));
+    Route::get('patient-list', [PatientController::class, 'list']);
 });
 
 Auth::routes();

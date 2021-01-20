@@ -65,5 +65,6 @@ return [
                 'Kamis' => ['09:00 - 12:00', '13:00 - 18:00', '19:00 - 21:00']
             ]
         ],
-    ]
+    ],
+    'status' => ['Menunggu', 'Selesai', 'Dibatalkan']
 ];
