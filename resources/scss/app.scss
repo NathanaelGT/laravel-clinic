@@ -8,6 +8,10 @@ body {
   }
 }
 
+.full-height {
+  min-height: calc(100vh - #{$navbarHeight});
+}
+
 .row {
   margin: 0;
 }

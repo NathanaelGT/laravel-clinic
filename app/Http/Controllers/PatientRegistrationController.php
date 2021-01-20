@@ -16,7 +16,14 @@ class PatientRegistrationController extends Controller
 
         $doctors = config('global.doctors')[$index];
         $workingSchedules = config('global.workingSchedules')[$index];
+        $formAction = route('patient-registration:store');
+        $formMethod = 'post';
 
-        return view('registration', compact('service', 'doctors', 'workingSchedules'));
+        return view('registration', compact('service', 'doctors', 'workingSchedules', 'formAction', 'formMethod'));
+    }
+
+    public function store(Request $request)
+    {
+        return redirect(route('home'));
     }
 }
