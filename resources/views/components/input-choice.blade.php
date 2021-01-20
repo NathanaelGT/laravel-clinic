@@ -7,11 +7,15 @@
   <div class="py-1">
     <label for="{{ $kebab }}">{{ $data['placeholder'] }}</label>
     <select class="form-select" id="{{ $kebab }}">
-      <option selected hidden disabled aria-hidden>Pilih {{ Str::lower($data['placeholder']) }}</option>
+      <option @if (!$data['selected']) selected @endif hidden disabled aria-hidden>
+        Pilih {{ Str::lower($data['placeholder']) }}
+      </option>
 
       @if (is_array($data['options']))
         @foreach ($data['options'] as $option)
-        <option value="{{ $option }}">{{ $option }}</option>
+        <option @if ($data['selected'] === $option) selected @endif value="{{ $option }}">
+          {{ $option }}
+        </option>
         @endforeach
       @else
         <option disabled aria-hidden>{{ $data['options'] }}</option>

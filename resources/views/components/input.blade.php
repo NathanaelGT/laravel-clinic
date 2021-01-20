@@ -6,10 +6,11 @@
   <input
     id="{{ $kebab }}"
     name="{{ $kebab }}"
+    @if (isset($data['type'])) data-type="{{ $data['type'] }}" @endif
     placeholder="Masukkan {{ Str::lower($data['placeholder']) }}"
     class="form-control"
     autocomplete="off"
-    @if (isset($data['value']))
+    @if (isset($data['value']) && $data['value'])
     value="{{ $data['value'] }}"
     disabled
     @endif

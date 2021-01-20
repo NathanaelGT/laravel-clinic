@@ -1,6 +1,17 @@
 const doctorInput = document.getElementById('doctor')
 const dayInput = document.getElementById('day')
 const timeInput = document.getElementById('time')
+const inputNumber = document.querySelectorAll('input[data-type="number"]')
+const form = document.querySelector('form')
+
+inputNumber.forEach(input => {
+  input.onkeypress = event => {
+    if (event.which !== 8 && event.which !== 0 && event.which < 48 || event.which > 57)
+      event.preventDefault()
+  }
+})
+
+form.classList.remove('d-none')
 
 const Option = ({ value }) => <option value={value}>{value}</option>
 

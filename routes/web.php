@@ -20,10 +20,13 @@ use App\Http\Controllers\Admin\PatientController;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/daftar', [PatientRegistrationController::class, 'index'])->name('patient-registration');
+Route::post('/daftar', [PatientRegistrationController::class, 'store'])->name('patient-registration:store');
 
 Route::group(['prefix' => 'admin'], function () {
     Route::get('new-service', fn () => view('admin.new-service'));
-    Route::get('patient-list', [PatientController::class, 'list']);
+    Route::get('patient-list', [PatientController::class, 'list'])->name('admin@patient-list');
+    Route::get('patient-reschedule', [PatientController::class, 'reschedule'])->name('admin@patient-reschedule');
+    Route::put('patient-reschedule', [PatientController::class, 'reschedule'])->name('admin@patient-reschedule:put');
 });
 
 Auth::routes();
