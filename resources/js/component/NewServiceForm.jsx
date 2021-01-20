@@ -7,7 +7,6 @@ export default data => {
   const updateQuotaValue = field => event => {
     data.quotaValue[currentIndex][field] = event.target.value
   }
-  console.log(currentIndex, data.quotaValue)
 
   return (
     <form className="d-flex flex-column justify-content-between align-items-center h-100" onsubmit={handleSubmit}>
