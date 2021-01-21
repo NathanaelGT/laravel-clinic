@@ -8,8 +8,8 @@ handleDivClick = (index, scheduleIndex) => () => {
 }
 
 const HourInfo = ({ index, scheduleIndex }) => (
-  <div onclick={handleDivClick(index, scheduleIndex)}>
-    <p className="card-text mb-1 service-info">
+  <div onclick={handleDivClick(index, scheduleIndex)} className={showDetail[index] && 'dropup'}>
+    <p className="card-text mb-1 service-info dropdown-toggle">
       Jam praktek Dr. {doctors[index][scheduleIndex]}{showDetail[index] ? ':' : ' hari ini:'}
     </p>
     {showDetail[index] ? (
@@ -44,8 +44,15 @@ containers.forEach((container, index) => {
 
 const doctorsName = Array.from(document.getElementsByClassName('doctors-name'))
 doctorsName.forEach((doctorsName, index) => {
-  Array.from(doctorsName.children).forEach((doctorName, secondIndex) => {
+  const doctorsNameChildren = Array.from(doctorsName.children)
+  doctorsNameChildren.forEach((doctorName, secondIndex) => {
+
     doctorName.onclick = () => {
+      doctorsNameChildren.forEach(doctorName => {
+        doctorName.classList.remove('bold')
+      })
+      doctorName.classList.add('bold')
+
       containers[index].render(<HourInfo index={index} scheduleIndex={secondIndex} />)
     }
   })

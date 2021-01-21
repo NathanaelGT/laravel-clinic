@@ -41,6 +41,10 @@ $day-width: 59px;
   cursor: pointer;
 }
 
+.bold {
+  font-weight: bold;
+}
+
 /* admin */
 .new-service {
   min-height: calc(100vh - #{$navbarHeight});
