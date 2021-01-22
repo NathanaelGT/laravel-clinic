@@ -17,5 +17,22 @@ mix.sass('resources/scss/app.scss', 'public/css')
    .js('resources/js/patientAppointment.jsx', 'public/js')
    .js('resources/js/app.js', 'public/js')
    .js('resources/js/admin/newService.js', 'public/js/admin')
+   .js('resources/js/admin/doctorList.tsx', 'public/js/admin')
    .sourceMaps(false, 'source-map')
    .disableNotifications()
+   .webpackConfig({
+      module: {
+         rules: [
+            {
+               test: /\.tsx?$/,
+               loader: 'babel-loader',
+               exclude: /node_modules/
+            },
+            {
+               test: /\.ts?$/,
+               loader: 'ts-loader',
+               exclude: /node_modules/
+            }
+         ]
+      }
+   })

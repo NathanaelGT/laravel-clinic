@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\PatientRegistrationController;
 use App\Http\Controllers\Admin\PatientController;
+use App\Http\Controllers\Admin\DoctorController;
 
 /*
 |--------------------------------------------------------------------------
@@ -27,6 +28,8 @@ Route::group(['prefix' => 'admin'], function () {
     Route::get('patient-list', [PatientController::class, 'list'])->name('admin@patient-list');
     Route::get('patient-reschedule', [PatientController::class, 'reschedule'])->name('admin@patient-reschedule');
     Route::put('patient-reschedule', [PatientController::class, 'reschedule'])->name('admin@patient-reschedule:put');
+
+    Route::get('doctor-list', [DoctorController::class, 'list']);
 });
 
 Auth::routes();

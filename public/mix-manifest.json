@@ -4,5 +4,6 @@
     "/js/patientAppointment.js": "/js/patientAppointment.js",
     "/js/app.js": "/js/app.js",
     "/js/admin/newService.js": "/js/admin/newService.js",
+    "/js/admin/doctorList.js": "/js/admin/doctorList.js",
     "/css/app.css": "/css/app.css"
 }

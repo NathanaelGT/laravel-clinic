@@ -12,7 +12,6 @@ class PatientController extends Controller
 
     public function __construct()
     {
-        Carbon::setLocale('id');
         $this->dummy = [
             (object) [
                 'id' => 1,

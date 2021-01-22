@@ -1,3 +1,4 @@
+@import "variables";
 $navbarHeight: 50px;
 
 body {
@@ -27,7 +28,7 @@ body {
 
 $day-width: 59px;
 .card-text {
-  > span {
+  span {
     display: inline-block;
     min-width: $day-width !important;
   }
@@ -43,6 +44,15 @@ $day-width: 59px;
 
 .bold {
   font-weight: bold;
+}
+
+.one-line {
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.cursor-pointer {
+  cursor: pointer;
 }
 
 /* admin */
@@ -67,5 +77,26 @@ $day-width: 59px;
     &:nth-child(3) {
       text-align: left;
     }
+  }
+}
+
+.table-doctor-list {
+  max-width: 2100px;
+  min-width: 760px;
+  width: 100%;
+
+  > tbody > tr > td {
+    vertical-align: middle;
+
+    &:not(.doctor-schedule) {
+      text-align: center;
+    }
+  }
+}
+
+.doctor-schedule {
+  span.day {
+    display: inline-block;
+    min-width: $day-width !important;
   }
 }

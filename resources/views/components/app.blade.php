@@ -30,5 +30,4 @@
   <script src="{{ mix('js/app.js') }}"></script>
   {{ $script ?? '' }}
 </body>
-
 </html>

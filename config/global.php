@@ -2,9 +2,9 @@
 
 return [
     //table services, column name
-    'services' => ['Gigi', 'Ibu dan Anak', 'Umum', 'Kulit', 'Mata', 'Penyakit Dalam'],
+    'services' =>    ['Gigi',           'Ibu dan Anak', 'Umum',   'Kulit',  'Mata',   'Penyakit Dalam'],
     //table doctor_serivces, join table doctors, column name
-    'doctors' =>  [['Budi', 'Tono'], ['Agus'], ['Dewi'], ['Bima'], ['John'], ['Ibnu']],
+    'doctors' =>     [['Budi', 'Tono'], ['Agus'],       ['Dewi'], ['Bima'], ['John'], ['Ibnu']],
     'workingSchedules' => [
         [
             [
@@ -65,6 +65,67 @@ return [
                 'Kamis' => ['09:00 - 12:00', '13:00 - 18:00', '19:00 - 21:00']
             ]
         ],
+    ],
+    'schedules_per' => [
+        [
+            [
+                'Senin' => [30, 30],
+                'Selasa' => [30, 30],
+                'Rabu' => [30, 30],
+                'Kamis' => [30, 30],
+                'Jumat' => [30],
+                'Sabtu' => [30, 30]
+            ],
+            [
+                'Senin' => [25, 25],
+                'Selasa' => [25, 25],
+                'Rabu' => [25, 25]
+            ]
+        ],
+        [
+            [
+                'Senin' => [30],
+                'Rabu' => [30, 30],
+                'Jumat' => [30]
+            ]
+        ],
+        [
+            [
+                'Senin' => [30, 30, 30],
+                'Selasa' => [30, 30, 30],
+                'Rabu' => [30, 30, 30],
+                'Kamis' => [30, 30, 30],
+                'Jumat' => [30],
+            ]
+        ],
+        [
+            [
+                'Senin' => [40],
+                'Selasa' => [40],
+                'Rabu' => [40],
+                'Kamis' => [40],
+                'Jumat' => [40],
+                'Sabtu' => [40]
+            ]
+        ],
+        [
+            [
+                'Senin' => [30, 30],
+                'Selasa' => [30, 30],
+                'Rabu' => [30, 30],
+                'Kamis' => [30, 30],
+                'Jumat' => [30, 30],
+                'Sabtu' => [30, 30]
+            ]
+        ],
+        [
+            [
+                'Senin' => [60],
+                'Selasa' => [60],
+                'Rabu' => [60, 60, 60],
+                'Kamis' => [60, 60, 60]
+            ]
+        ]
     ],
     'status' => ['Menunggu', 'Selesai', 'Dibatalkan']
 ];
