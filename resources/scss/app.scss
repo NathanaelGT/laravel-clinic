@@ -60,6 +60,10 @@ $day-width: 59px;
   min-height: calc(100vh - #{$navbarHeight});
 }
 
+#form-container button {
+  height: 33.5px;
+}
+
 .input-valid-text {
   user-select: none;
 }

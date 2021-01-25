@@ -14,7 +14,6 @@ export default ({
       value={value}
       className="form-control"
       autocomplete="off"
-      required
     />
   )
   if (list) input.setAttribute('list', list)
