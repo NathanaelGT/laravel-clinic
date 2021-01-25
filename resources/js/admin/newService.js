@@ -61,7 +61,6 @@ const searchValid = index => {
   return !Object.keys(_data).length
 }
 
-let fetching = false
 const data = {
   serviceName: '',
   doctorName: '',
@@ -127,81 +126,78 @@ const data = {
   handleSubmit(event) {
     event.preventDefault()
 
-    if (!fetching) {
-      fetching = true
-      let trimmed = false
-      const quota = data.quotaValue[data.highestIndex]
-      if (
-        data.timeInputValue[data.highestIndex].length === 0 &&
-        data.dayValue[data.highestIndex].length === 0 &&
-        !quota.number &&
-        !quota.time &&
-        !quota.per
-      ) {
-        trimmed = true
-        data.highestIndex--
-        data.quotaValue.pop()
-        data.timeInputValue.pop()
-        data.errorMessages.pop()
-        data.dayValue.pop()
+    let trimmed = false
+    const quota = data.quotaValue[data.highestIndex]
+    if (
+      data.timeInputValue[data.highestIndex].length === 0 &&
+      data.dayValue[data.highestIndex].length === 0 &&
+      !quota.number &&
+      !quota.time &&
+      !quota.per
+    ) {
+      trimmed = true
+      data.highestIndex--
+      data.quotaValue.pop()
+      data.timeInputValue.pop()
+      data.errorMessages.pop()
+      data.dayValue.pop()
+    }
+
+    let isValid = true
+    for (let i = data.highestIndex; i >= 0; i--) {
+      if (!searchValid(i)) {
+        data.currentIndex = i
+        isValid = false
       }
+    }
 
-      let isValid = true
-      for (let i = data.highestIndex; i >= 0; i--) {
-        if (!searchValid(i)) {
-          data.currentIndex = i
-          isValid = false
-        }
-      }
+    const { serviceName, doctorName, timeInputValue, quotaValue, dayValue } = data
 
-      const { serviceName, doctorName, quotaValue, dayValue } = data
+    if (isValid) {
+      fetch(window.location.origin + '/api/service', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          serviceName,
+          doctorName,
+          time: timeInputValue,
+          quota: quotaValue.map(calculateQuota(false)),
+          day: dayValue
+        })
+      }).then(res => res.json())
+        .then(res => console.log(res))
+        .catch(err => {
+          alert(err)
+          console.error(err)
+        })
+        .finally(() => {
+          container.render(Form(data))
+        })
+    }
 
-      if (isValid) {
-        fetch(window.location.origin + '/api/service', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            serviceName,
-            doctorName,
-            quota: quotaValue.map(calculateQuota(false)),
-            day: dayValue
-          })
-        }).then(res => res.json())
-          .then(res => console.log(res))
-          .catch(err => {
-            alert(err)
-            console.error(err)
-          })
-          .finally(() => {
-            fetching = false
-            container.render(Form(data))
-          })
-      }
+    if (trimmed) {
+      data.highestIndex++
+      data.timeInputValue[data.highestIndex] = []
+      data.quotaValue[data.highestIndex] = {}
+      data.dayValue[data.highestIndex] = []
+      data.errorMessages[data.highestIndex] = null
+    }
 
-      if (trimmed) {
-        data.highestIndex++
-        data.timeInputValue[data.highestIndex] = []
-        data.quotaValue[data.highestIndex] = {}
-        data.dayValue[data.highestIndex] = []
-        data.errorMessages[data.highestIndex] = null
-      }
-
-      //render ulang biar errornya keupdate (di tampilan)
-      container.render(Form(data))
-      if (isValid) {
-        container.DOMchildNodes.querySelectorAll('button').forEach(button => {
-          button.disabled = true
-          if (button.type === 'submit') {
-            button.innerHTML = (`
+    //render ulang biar errornya keupdate (di tampilan)
+    container.render(Form(data))
+    if (isValid) {
+      container.DOMchildNodes.querySelectorAll('button').forEach(button => {
+        button.disabled = true
+        if (button.type === 'submit') {
+          button.innerHTML = (`
               <div class="d-flex justify-content-center">
                 <div class="spinner-border spinner-border-sm" role="status">
                   <span class="visually-hidden">Loading...</span>
                 </div>
               </div>
             `)
-          }
-        })
-      }
+        }
+      })
     }
   }
 }

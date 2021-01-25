@@ -34,6 +34,9 @@ class DoctorService extends Model
 {
     use HasFactory;
 
+    public $fillable = ['doctor_name', 'service_id'];
+    public $timestamps = false;
+
     public function service()
     {
         return $this->belongsTo(Service::class);

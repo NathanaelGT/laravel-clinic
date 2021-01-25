@@ -23,6 +23,9 @@ class Service extends Model
 {
     use HasFactory;
 
+    public $fillable = ['name'];
+    public $timestamps = false;
+
     public function list()
     {
         return $this->hasMany(DoctorService::class);

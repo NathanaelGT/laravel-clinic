@@ -35,6 +35,8 @@ class DoctorWorktime extends Model
 {
     use HasFactory;
 
+    public $fillable = ['doctor_service_id', 'quota', 'day', 'time_start', 'time_end'];
+
     public function service()
     {
         $this->belongsTo(DoctorService::class);

@@ -4,3 +4,15 @@ Content-Type: application/json
 {
   "name": "Toni"
 }
+
+###
+
+POST http://127.0.0.1:8000/api/service
+Content-Type: application/json
+
+{
+  "serviceName": "Gigi",
+  "doctorName": "Budi",
+  "quota": [-20],
+  "day": [["Selasa"]]
+}

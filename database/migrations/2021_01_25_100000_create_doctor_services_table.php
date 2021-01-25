@@ -17,7 +17,6 @@ class CreateDoctorServicesTable extends Migration
             $table->id();
             $table->string('doctor_name');
             $table->unsignedBigInteger('service_id')->nullable();
-            $table->timestamps();
             $table->softDeletes();
 
             $table->foreign('service_id')->references('id')->on('services')->nullOnDelete();

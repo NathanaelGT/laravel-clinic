@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\Api\ApiController;
+use App\Http\Controllers\Api\ServiceController;
 
 /*
 |--------------------------------------------------------------------------
@@ -20,6 +21,7 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
 
+Route::post('/service', [ServiceController::class, 'store']);
 foreach (['doctor', 'serviceTime', 'servicePer', 'close', 'delete'] as $method) {
     Route::post("/$method/{id}", [ApiController::class, $method]);
 }

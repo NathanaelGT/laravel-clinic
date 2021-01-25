@@ -29,7 +29,7 @@ Route::group(['prefix' => 'admin'], function () {
     Route::get('patient-reschedule', [PatientController::class, 'reschedule'])->name('admin@patient-reschedule');
     Route::put('patient-reschedule', [PatientController::class, 'reschedule'])->name('admin@patient-reschedule:put');
 
-    Route::get('doctor-list', [DoctorController::class, 'list']);
+    Route::get('doctor-list', [DoctorController::class, 'list'])->name('admin@doctor-list');
 });
 
 Auth::routes();
