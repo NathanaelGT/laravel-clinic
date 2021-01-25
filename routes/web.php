@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\PatientRegistrationController;
+use App\Http\Controllers\Admin\ServiceController;
 use App\Http\Controllers\Admin\PatientController;
 use App\Http\Controllers\Admin\DoctorController;
 
@@ -24,7 +25,7 @@ Route::get('/daftar', [PatientRegistrationController::class, 'index'])->name('pa
 Route::post('/daftar', [PatientRegistrationController::class, 'store'])->name('patient-registration:store');
 
 Route::group(['prefix' => 'admin'], function () {
-    Route::get('new-service', fn () => view('admin.new-service'));
+    Route::get('new-service', [ServiceController::class, 'create'])->name('admin@new-service');
     Route::get('patient-list', [PatientController::class, 'list'])->name('admin@patient-list');
     Route::get('patient-reschedule', [PatientController::class, 'reschedule'])->name('admin@patient-reschedule');
     Route::put('patient-reschedule', [PatientController::class, 'reschedule'])->name('admin@patient-reschedule:put');

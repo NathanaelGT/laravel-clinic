@@ -11,7 +11,7 @@
 
   <x-slot name="script">
     <script>
-      window.services = {!! json_encode(config('global.services')) !!}
+      window.services = {!! json_encode($services) !!}
     </script>
     <script src="{{ mix('js/admin/newService.js') }}"></script>
   </x-slot>

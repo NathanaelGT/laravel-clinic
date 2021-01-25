@@ -165,7 +165,9 @@ const data = {
           day: dayValue
         })
       }).then(res => res.json())
-        .then(res => console.log(res))
+        .then(res => {
+          window.location.href = res.redirect
+        })
         .catch(err => {
           alert(err)
           console.error(err)
