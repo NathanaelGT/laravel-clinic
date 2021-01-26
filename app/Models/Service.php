@@ -26,7 +26,7 @@ class Service extends Model
     public $fillable = ['name'];
     public $timestamps = false;
 
-    public function list()
+    public function doctorService()
     {
         return $this->hasMany(DoctorService::class);
     }

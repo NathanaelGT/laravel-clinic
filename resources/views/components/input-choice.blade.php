@@ -6,7 +6,7 @@
 
   <div class="py-1">
     <label for="{{ $kebab }}">{{ $data['placeholder'] }}</label>
-    <select class="form-select" id="{{ $kebab }}">
+    <select class="form-select" id="{{ $kebab }}" name="{{ $kebab }}">
       <option @if (!$data['selected']) selected @endif hidden disabled aria-hidden>
         Pilih {{ Str::lower($data['placeholder']) }}
       </option>

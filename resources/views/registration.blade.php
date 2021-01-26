@@ -58,7 +58,7 @@
             'name' => 'day',
             'options' => isset($patient->doctor) ? $availableDays : (sizeof($doctors) > 1
               ? 'Harap pilih doktek terlebih dahulu'
-              : array_keys($workingSchedules[0])),
+              : array_keys($schedules[0])),
             'selected' => isset($patient->doctor) ? $patient->time_start->isoFormat('dddd') : ''
           ],
           [
@@ -82,7 +82,7 @@
 
   <x-slot name="script">
     <script>
-      window.workingSchedules = {!! json_encode($workingSchedules) !!}
+      window.schedules = {!! json_encode($schedules) !!}
     </script>
     <script src="{{ mix('js/patientAppointment.js') }}"></script>
   </x-slot>

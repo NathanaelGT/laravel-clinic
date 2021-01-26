@@ -24,7 +24,7 @@ if (doctorInput.tagName === 'SELECT') {
     dayInput.appendChild(placeholder)
     dayInput.pointer = event.target.selectedIndex - 1
 
-    Object.keys(workingSchedules[event.target.selectedIndex - 1]).forEach(day => {
+    Object.keys(schedules[event.target.selectedIndex - 1]).forEach(day => {
       dayInput.appendChild(<Option value={day} />)
     })
 
@@ -42,7 +42,7 @@ dayInput.onchange = event => {
   timeInput.innerHTML = ''
   timeInput.appendChild(timeInputPlaceholder)
 
-  const workingSchedule = workingSchedules[Number(event.target.pointer) || 0]
+  const workingSchedule = schedules[Number(event.target.pointer) || 0]
 
   let firstOption
   workingSchedule[event.target.value].forEach(hour => {
