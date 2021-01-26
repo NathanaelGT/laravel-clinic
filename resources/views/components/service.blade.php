@@ -5,8 +5,13 @@
 
       <div class="card-body service-card">
         <h5 class="card-title d-flex justify-content-around doctors-name">
-          @foreach ($doctors as $doctor)
-          <span @if ($loop->first) class="bold" @endif >Dr. {{ $doctor }}</span>
+          @foreach (array_keys($doctors) as $doctor)
+          <span
+            @if ($loop->first) class="bold" @endif
+            data-schedule="{{ json_encode($doctors[$doctor]) }}"
+          >
+            Dr. {{ $doctor }}
+          </span>
           @endforeach
         </h5>
       </div>

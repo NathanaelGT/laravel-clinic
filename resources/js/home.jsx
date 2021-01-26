@@ -2,58 +2,55 @@ const today = new Date().toLocaleDateString('id', { weekday: 'long' })
 const days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu']
 
 const showDetail = []
-handleDivClick = (index, scheduleIndex) => () => {
+handleDivClick = (index, scheduleIndex, doctor) => () => {
   showDetail[index] = !showDetail[index]
-  containers[index].render(<HourInfo index={index} scheduleIndex={scheduleIndex} />)
+  containers[index].render(<HourInfo index={index} schedule={scheduleIndex} doctor={doctor} />)
 }
 
-const HourInfo = ({ index, scheduleIndex }) => (
-  <div onclick={handleDivClick(index, scheduleIndex)} className={showDetail[index] && 'dropup'}>
+const HourInfo = ({ index, schedule, doctor }) => (
+  <div onclick={handleDivClick(index, schedule, doctor)} className={showDetail[index] && 'dropup'}>
     <p className="card-text mb-1 service-info dropdown-toggle">
-      Jam praktek Dr. {doctors[index][scheduleIndex]}{showDetail[index] ? ':' : ' hari ini:'}
+      Jam praktek {doctor}{showDetail[index] ? ':' : ' hari ini:'}
     </p>
     {showDetail[index] ? (
       <div>
-        {days.map(day => {
-          const hours = workingSchedules[index][scheduleIndex][day]
-
-          return (
-            <p className="card-text mb-0 d-flex">
-              <span>{day === today ? <strong>{day}</strong> : day}: </span>
-              <span>
-                {hours?.map((hour, index) => (
-                  <span>{hour}{index !== hours.length - 1 && ','}&nbsp;</span>
-                )) || <span>Tutup</span>}
-              </span>
-            </p>
-          )
-        })}
+        {days.map(day => (
+          <p className="card-text mb-0 d-flex">
+            <span>{day === today ? <strong>{day}</strong> : day}: </span>
+            <span>{schedule[day] || 'Tutup'}</span>
+          </p>
+        ))}
       </div>
     ) : (
-        <p className="card-text mb-0">
-          {workingSchedules[index][scheduleIndex][today]?.join(', ') || 'Tutup'}
-        </p>
+        <p className="card-text mb-0">{schedule[today] || 'Tutup'}</p>
       )}
   </div>
 )
 
-const containers = Array.from(document.getElementsByClassName('service-card'))
+const containers = document.querySelectorAll('.service-card')
 containers.forEach((container, index) => {
-  registerRender(container).render(<HourInfo index={index} scheduleIndex={0} />)
+  const element = container.querySelector('span.bold')
+  const schedule = JSON.parse(element.getAttribute('data-schedule'))
+  const doctor = element.innerText
+
+  registerRender(container).render(<HourInfo index={index} schedule={schedule} doctor={doctor} />)
 })
 
-const doctorsName = Array.from(document.getElementsByClassName('doctors-name'))
+const doctorsName = document.querySelectorAll('.doctors-name')
 doctorsName.forEach((doctorsName, index) => {
   const doctorsNameChildren = Array.from(doctorsName.children)
-  doctorsNameChildren.forEach((doctorName, secondIndex) => {
+  doctorsNameChildren.forEach(doctorName => {
+    const schedule = JSON.parse(doctorName.getAttribute('data-schedule'))
+    const doctor = doctorName.innerText
 
+    doctorName.removeAttribute('data-schedule')
     doctorName.onclick = () => {
       doctorsNameChildren.forEach(doctorName => {
         doctorName.classList.remove('bold')
       })
       doctorName.classList.add('bold')
 
-      containers[index].render(<HourInfo index={index} scheduleIndex={secondIndex} />)
+      containers[index].render(<HourInfo index={index} schedule={schedule} doctor={doctor} />)
     }
   })
 })

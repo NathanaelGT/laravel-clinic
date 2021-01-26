@@ -2,20 +2,33 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\DoctorService;
+use App\Models\DoctorWorktime;
+use App\Models\Service;
+
 class HomeController extends Controller
 {
     public function index()
     {
-        $services = config('global.services');
-        $doctors = config('global.doctors');
-        $workingSchedules = config('global.workingSchedules');
+        $schedule = DoctorWorktime::with('doctorService.service')->get()->toArray();
 
-        $services = array_chunk($services, ceil(sizeof($services) / 3));
+        $data = array_reduce($schedule, function($carry, $item) {
+            $serviceName = $item['doctor_service']['service']['name'];
+            $time = $item['time_start'] . ' - ' . $item['time_end'];
 
-        if (sizeof($services[1]) - sizeof($services[2]) === 2) {
-            array_push($services[2], array_pop($services[1]));
-        }
+            $array = &$carry[$serviceName];
+            $doctor = &$array[$item['doctor_service']['doctor_name']];
+            $day = &$doctor[$item['day']];
 
-        return view('home', compact('services', 'doctors', 'workingSchedules'));
+            if (!isset($array)) $array = [];
+            if (!isset($doctor)) $doctor = [];
+
+            if (!isset($day)) $day = $time;
+            else $day .= ', ' . $time;
+
+            return $carry;
+        }, []);
+
+        return view('home', compact('data'));
     }
 }

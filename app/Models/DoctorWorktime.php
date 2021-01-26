@@ -14,13 +14,11 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $day
  * @property string $time_start
  * @property string $time_end
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
  * @property string|null $deleted_at
+ * @property-read \App\Models\DoctorService|null $doctorService
  * @method static \Illuminate\Database\Eloquent\Builder|DoctorWorktime newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|DoctorWorktime newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|DoctorWorktime query()
- * @method static \Illuminate\Database\Eloquent\Builder|DoctorWorktime whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|DoctorWorktime whereDay($value)
  * @method static \Illuminate\Database\Eloquent\Builder|DoctorWorktime whereDeletedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|DoctorWorktime whereDoctorServiceId($value)
@@ -28,7 +26,6 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder|DoctorWorktime whereQuota($value)
  * @method static \Illuminate\Database\Eloquent\Builder|DoctorWorktime whereTimeEnd($value)
  * @method static \Illuminate\Database\Eloquent\Builder|DoctorWorktime whereTimeStart($value)
- * @method static \Illuminate\Database\Eloquent\Builder|DoctorWorktime whereUpdatedAt($value)
  * @mixin \Eloquent
  */
 class DoctorWorktime extends Model
@@ -37,8 +34,8 @@ class DoctorWorktime extends Model
 
     public $fillable = ['doctor_service_id', 'quota', 'day', 'time_start', 'time_end'];
 
-    public function service()
+    public function doctorService()
     {
-        $this->belongsTo(DoctorService::class);
+        return $this->belongsTo(DoctorService::class);
     }
 }

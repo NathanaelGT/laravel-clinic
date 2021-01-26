@@ -18,8 +18,8 @@ class CreatePatientAppoinmentsTable extends Migration
             $table->unsignedBigInteger('patient_id')->nullable();
             $table->unsignedBigInteger('doctor_service_id')->nullable();
             $table->enum('day', ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu']);
-            $table->time('time_start');
-            $table->time('time_end');
+            $table->string('time_start', 5);
+            $table->string('time_end', 5);
             $table->enum('status', ['Menunggu', 'Selesai', 'Dibatalkan']);
             $table->timestamps();
             $table->softDeletes();

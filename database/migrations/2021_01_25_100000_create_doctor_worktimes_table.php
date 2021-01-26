@@ -18,8 +18,8 @@ class CreateDoctorWorktimesTable extends Migration
             $table->unsignedBigInteger('doctor_service_id')->nullable();
             $table->unsignedInteger('quota');
             $table->enum('day', ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu']);
-            $table->time('time_start');
-            $table->time('time_end');
+            $table->string('time_start', 5);
+            $table->string('time_end', 5);
             $table->softDeletes();
 
             $table->foreign('doctor_service_id')->references('id')->on('doctor_services')->nullOnDelete();
