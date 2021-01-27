@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * App\Models\PatientAppoinment
@@ -38,6 +39,7 @@ use Illuminate\Database\Eloquent\Model;
 class PatientAppoinment extends Model
 {
     use HasFactory;
+    use SoftDeletes;
 
     public function patient()
     {

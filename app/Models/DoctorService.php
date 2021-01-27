@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * App\Models\DoctorService
@@ -29,6 +30,7 @@ use Illuminate\Database\Eloquent\Model;
 class DoctorService extends Model
 {
     use HasFactory;
+    use SoftDeletes;
 
     public $fillable = ['doctor_name', 'service_id'];
     public $timestamps = false;

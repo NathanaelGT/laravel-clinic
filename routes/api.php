@@ -13,7 +13,7 @@ use App\Http\Controllers\Api\ServiceController;
 |
 | Here is where you can register API routes for your application. These
 | routes are loaded by the RouteServiceProvider within a group which
-| is assigned the "api" middleware group. Enjoy building your API!
+| is assigned the 'api' middleware group. Enjoy building your API!
 |
 */
 
@@ -22,6 +22,7 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 });
 
 Route::post('/service', [ServiceController::class, 'store']);
-foreach (['doctor', 'serviceTime', 'servicePer', 'close', 'delete'] as $method) {
-    Route::post("/$method/{id}", [ApiController::class, $method]);
-}
+
+Route::post('/doctor/{doctorService}', [ApiController::class, 'doctor']);
+Route::post('/service/{id}', [ApiController::class, 'service']);
+Route::post('/close/{doctorWorktime}', [ApiController::class, 'close']);

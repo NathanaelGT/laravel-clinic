@@ -3,99 +3,17 @@ declare global {
     plusUrl: string,
     minusUrl: string
   }
+  const React
 }
-
-declare const React
 
 //@ts-ignore
 import addPlusMinusIconToSiblings from './doctorList/addPlusMinusIconToSiblings.tsx'
 //@ts-ignore
 import deleteTableRecord from './doctorList/deleteTableRecord.ts'
+//@ts-ignore
+import { fetching, validate } from './doctorList/logic.ts'
 
-const update = (url: string, element: HTMLElement | null, data: object) => {
-  if (element) {
-    element.contentEditable = 'false'
-    element.classList.add('text-secondary')
-  }
-
-  // console.log(window.location.origin + '/api/' + url + '/' + id, data)
-  fetch(window.location.origin + /api/ + url + '/' + element.dataset.id, {
-    method: 'POST',
-    body: JSON.stringify(data)
-  }).then(res => {
-    if (res.ok && element) {
-      element.contentEditable = 'true'
-      element.classList.remove('text-secondary')
-    }
-    return res.json()
-  }).then(res => {
-    if (element.dataset.id === 'new') {
-      element.dataset.id = res.id
-
-      const previousSibling = element.previousElementSibling
-      if (previousSibling) {
-        previousSibling.setAttribute('data-id', res.id)
-      }
-      else {
-        element.nextElementSibling.setAttribute('data-id', res.id)
-      }
-    }
-  })
-}
-
-const validate = {
-  name() {
-    return true
-  },
-
-  time(value: string) {
-    const times = value.split(' - ')
-    if (times.length !== 2) return false
-
-    return times.every(time => {
-      if (time.length !== 5) return false
-
-      const [hour, minute] = time.split(':').map(val => Number(val))
-
-      if (isNaN(hour) || hour >= 24 || hour < 0) return false
-      if (isNaN(minute) || minute >= 60 || minute < 0) return false
-      return true
-    })
-  },
-
-  per(value: string) {
-    const [quota, per] = value.split(' ')
-    if (!per) return false
-
-    if (isNaN(Number(quota)) && Number(quota) < 1) return false
-
-    const validPer = ['sesi', 'jam', 'menit']
-    if (validPer.indexOf(per.toLowerCase()) === -1) return false
-
-    return true
-  }
-}
-
-const fetching = {
-  name(element: HTMLElement, name: string) {
-    update('doctor', element, { name })
-  },
-  time(element: HTMLElement, time: string, doctorServiceId: string) {
-    update('serviceTime', element, { time, doctorServiceId })
-  },
-  per(element: HTMLElement, per: string, doctorServiceId: string) {
-    update('servicePer', element, { per, doctorServiceId })
-  },
-  close(element: HTMLElement, ids: string[]) {
-    update('close', element, { ids })
-  },
-  deleteService(id: string) {
-    update('delete', null, { id })
-  }
-}
-
-const applyLiveEdit = (_element: Element) => {
-  const element = _element as HTMLElement
+const applyLiveEdit = (element: HTMLElement) => {
   let text = element.innerText
 
   element.contentEditable = 'true'
@@ -120,12 +38,7 @@ const applyLiveEdit = (_element: Element) => {
 
       if (grandParent.childElementCount === 2) {
         if (confirm(`Apakah anda yakin ingin menutup jadwal pada hari ${day}?`)) {
-          const ids = []
-          grandParent.querySelectorAll('*[data-id]').forEach(element => {
-            const id = element.getAttribute('data-id')
-            if (ids.indexOf(id) === -1) ids.push(id)
-          })
-          fetching.close(element, ids)
+          fetching.close(element)
 
           grandParent.children[0].remove()
           grandParent.prepend(
@@ -137,10 +50,10 @@ const applyLiveEdit = (_element: Element) => {
           const rowElement = grandParent.parentElement.parentElement.parentElement
           const blank = Array.from(rowElement.children).every(child => (
             Array.from(child.children).every(grandChild => (
-              (grandChild.children[1] as HTMLElement).innerText === 'Tutup'
+              (grandChild.children[1] as HTMLElement).innerText.trim() === 'Tutup'
             ))
           ))
-          if (blank) deleteTableRecord(rowElement, fetching.deleteService)
+          if (blank) deleteTableRecord(rowElement.parentElement)
           return
         }
       }
@@ -152,14 +65,19 @@ const applyLiveEdit = (_element: Element) => {
           if (parentSibling) {
             parent.previousElementSibling.childNodes[4].replaceWith(document.createTextNode(') '))
           }
-          fetching.close(element, [element.dataset.id])
+          fetching.close(element)
           return parent.remove()
         }
       }
       return element.innerText = text
     }
 
-    if (!validate[element.dataset.type](newText)) return element.classList.add('text-danger')
+    const validation = validate[element.dataset.type](newText)
+    if (validation) {
+      element.title = validation
+      return element.classList.add('text-danger')
+    }
+    else element.title = ''
     element.classList.remove('text-danger')
 
     if (newText === text) return
@@ -179,10 +97,16 @@ const applyLiveEdit = (_element: Element) => {
     }
 
     text = newText
-    const doctorServiceId = element.parentElement.parentElement.parentElement.parentElement.parentElement.parentElement.previousElementSibling?.getAttribute('data-id')
-    fetching[element.dataset.type](element, newText, doctorServiceId)
+    const type = element.dataset.type
+    fetching[type === 'time' || type === 'per' ? 'service' : type](element, newText)
   }
 }
 
-document.querySelectorAll('.editable').forEach(applyLiveEdit)
+document.querySelectorAll<HTMLElement>('.editable').forEach(applyLiveEdit)
 addPlusMinusIconToSiblings(document.querySelectorAll('.day'), applyLiveEdit)
+document.querySelectorAll<HTMLFormElement>('form.delete-service').forEach(form => {
+  form.onsubmit = event => {
+    event.preventDefault()
+    deleteTableRecord(form.parentElement.previousElementSibling as HTMLElement)
+  }
+})

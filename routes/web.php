@@ -31,6 +31,7 @@ Route::group(['prefix' => 'admin'], function () {
     Route::put('patient-reschedule', [PatientController::class, 'reschedule'])->name('admin@patient-reschedule:put');
 
     Route::get('doctor-list', [DoctorController::class, 'list'])->name('admin@doctor-list');
+    Route::delete('doctor-list/{doctorService}', [DoctorController::class, 'delete'])->name('admin@delete-service');
 });
 
 Auth::routes();

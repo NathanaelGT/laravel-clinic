@@ -3,45 +3,44 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Http\Requests\Api\UpdateDoctorNameRequest;
+use App\Http\Requests\Api\UpdateServiceRequest;
+use App\Models\DoctorService;
+use App\Models\DoctorWorktime;
 
 class ApiController extends Controller
 {
-    public function doctor(Request $request, $id)
+    public function doctor(UpdateDoctorNameRequest $request, DoctorService $doctorService)
     {
-        // TODO update nama dokter
-        return response()->json(['id' => $id, 'data' => json_decode($request->getContent())]);
+        $doctorService->update(['doctor_name' => $request->name]);
+
+        return response()->json(['status' => 'success']);
     }
 
-    public function serviceTime(Request $request, $id)
+    public function service(UpdateServiceRequest $request, $id)
     {
-        // TODO update nama dokter
         if ($id === 'new') {
-            return response()->json(['id' => 100, 'data' => json_decode($request->getContent())]);
+            $newId = DoctorWorktime::insertGetId([
+                'doctor_service_id' => $request->doctorServiceId,
+                'day' => $request->day,
+                'quota' => $request->quota,
+                'time_start' => $request->timeStart,
+                'time_end' => $request->timeEnd
+            ]);
+            return response()->json(['status' => 'success', 'newId' => $newId]);
         }
 
-        return response()->json(['id' => $id, 'data' => json_decode($request->getContent())]);
+        DoctorWorktime::findOrFail($id)->update([
+            'quota' => $request->quota,
+            'time_start' => $request->timeStart,
+            'time_end' => $request->timeEnd
+        ]);
+        return response()->json(['status' => 'success']);
     }
 
-    public function servicePer(Request $request, $id)
+    public function close(DoctorWorktime $doctorWorktime)
     {
-        // TODO update nama dokter
-        if ($id === 'new') {
-            return response()->json(['id' => 100, 'data' => json_decode($request->getContent())]);
-        }
-
-        return response()->json(['id' => $id, 'data' => json_decode($request->getContent())]);
-    }
-
-    public function close(Request $request, $id)
-    {
-        // TODO update nama dokter
-        return response()->json(['id' => $id, 'data' => json_decode($request->getContent())]);
-    }
-
-    public function delete(Request $request, $id)
-    {
-        // TODO update nama dokter
-        return response()->json(['id' => $id, 'data' => json_decode($request->getContent())]);
+        $doctorWorktime->delete();
+        return response()->json(['status' => 'success']);
     }
 }

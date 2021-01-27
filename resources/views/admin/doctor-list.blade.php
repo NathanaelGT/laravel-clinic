@@ -16,16 +16,13 @@
         </tr>
       </thead>
       <tbody>
-        @php $id = 0 @endphp
-        @php $worktimesId = 0 @endphp
-        @foreach ($services as $service)
-        @foreach ($doctors[$loop->index] as $doctor)
-        @php $_loop = $loop @endphp
+        @foreach ($data as $service => $doctors)
+        @foreach ($doctors as $doctor => $schedules)
         <tr>
           @if ($loop->first)
-          <td rowspan="{{ sizeof($doctors[$loop->parent->index]) }}">{{ $service }}</td>
+          <td rowspan="{{ sizeof($doctors) }}">{{ $service }}</td>
           @endif
-          <td class="editable" data-type="name" data-id="{{ ++$id }}">{{ $doctor }}</td>
+          <td class="editable" data-type="name" data-id="{{ $ids["$service.$doctor"] }}">{{ $doctor }}</td>
           <td class="doctor-schedule">
             <div class="row">
               @foreach ([['Senin', 'Selasa', 'Rabu'], ['Kamis', 'Jumat', 'Sabtu']] as $days)
@@ -34,7 +31,7 @@
                 <div class="schedule d-flex">
                   <span class="day @if ($today === $day) bold @endif">{{ $day }}:</span>
                   <span>
-                    @foreach ($schedules[$_loop->parent->index][$_loop->index][$day] ?? ['Tutup'] as $schedule)
+                    @foreach ($schedules[$day] ?? ['Tutup'] as $schedule)
                     <span class="one-line">
                       @if ($schedule === 'Tutup')
                       <span>{{ $schedule }}</span>
@@ -42,15 +39,14 @@
                       <span
                         class="editable"
                         data-type="time"
-                        data-id="{{ ++$worktimesId }}"
-                      >{{ $schedule }}</span>
+                        data-id="{{ $schedule['id'] }}"
+                      >{{ $schedule['time'] }}</span>
                       (per
                       <span
                         class="editable"
                         data-type="per"
-                        data-id="{{ $worktimesId }}"
-                      >{{ $slot[$_loop->parent->index][$_loop->index][$day][$loop->index] }} menit</span>
-                      ){{  !$loop->last ? ', ' : ''  }}
+                        data-id="{{ $schedule['id'] }}"
+                      >{{ $schedule['quota'] }} menit</span>){{  !$loop->last ? ', ' : ''  }}
                       @endif
                     </span>
                     @endforeach
@@ -62,7 +58,15 @@
             </div>
           </td>
           <td>
-            <a href="#" class="btn btn-danger w-100">Hapus</a>
+            <form
+              class="delete-service"
+              action="{{ route('admin@delete-service', $ids["$service.$doctor"]) }}"
+              method="POST"
+            >
+              @csrf
+              @method('DELETE')
+              <button class="btn btn-danger w-100">Hapus</button>
+            </form>
           </td>
         </tr>
         @endforeach

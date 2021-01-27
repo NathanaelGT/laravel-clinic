@@ -1,9 +1,7 @@
-declare const React
-
 export default (elements: NodeListOf<Element>, applyLiveEdit: (_element: Element) => void) => {
   elements.forEach(day => {
     const sibling = day.nextElementSibling
-    const icon = <img className="cursor-pointer" src={window.plusUrl} width="16" height="16" />
+    const icon = <img className="cursor-pointer" src={window.plusUrl} width="16" height="16" /> as HTMLImageElement
 
     icon.onclick = () => {
       const siblingFirstChild = sibling.children[0]
@@ -15,7 +13,8 @@ export default (elements: NodeListOf<Element>, applyLiveEdit: (_element: Element
         element.innerHTML = '<span class="editable" data-type="time" data-id="new">08:00 - 10:00</span> (per <span class="editable" data-type="per" data-id="new">30 menit</span>)'
         element.querySelectorAll('.editable').forEach(applyLiveEdit)
 
-        if (siblingFirstChildText !== 'Tutup') icon.previousElementSibling.innerHTML += ', '
+        const index = icon.previousElementSibling.childNodes.length - 1
+        if (siblingFirstChildText !== 'Tutup') icon.previousElementSibling.childNodes[index].textContent = '), '
         icon.src = window.minusUrl
 
         icon.insertAdjacentElement('beforebegin', element)
@@ -24,14 +23,15 @@ export default (elements: NodeListOf<Element>, applyLiveEdit: (_element: Element
         icon.src = window.plusUrl
         icon.previousElementSibling.remove()
         if (sibling.children[0] !== icon) {
-          icon.previousElementSibling.innerHTML = icon.previousElementSibling.innerHTML.slice(0, -2)
+          const index = icon.previousElementSibling.childNodes.length - 1
+          icon.previousElementSibling.childNodes[index].textContent = ') '
         }
         else {
-          const virtual = <virtual />
-          virtual.innerHTML = `<span class="one-line">
-          <span>Tutup</span>
-        </span>`
-          icon.parentElement.prepend(virtual.children[0])
+          icon.parentElement.prepend(
+            <span class="one-line">
+              <span>Tutup</span>
+            </span>
+          )
         }
       }
     }
