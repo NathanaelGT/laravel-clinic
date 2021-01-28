@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateDoctorServicesTable extends Migration
+class CreateServiceAppointmentsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,11 +13,11 @@ class CreateDoctorServicesTable extends Migration
      */
     public function up()
     {
-        Schema::create('doctor_services', function (Blueprint $table) {
+        Schema::create('service_appointments', function (Blueprint $table) {
             $table->id();
-            $table->string('doctor_name');
-            $table->foreignId('service_id')->nullable()->constrained()->nullOnDelete();
-            $table->softDeletes();
+            $table->foreignId('doctor_worktime_id')->nullable()->constrained()->nullOnDelete();
+            $table->string('date', 20);
+            $table->json('quota');
         });
     }
 
@@ -28,6 +28,6 @@ class CreateDoctorServicesTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('doctor_services');
+        Schema::dropIfExists('service_appointments');
     }
 }

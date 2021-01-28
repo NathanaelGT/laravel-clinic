@@ -11,13 +11,18 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  *
  * @property int $id
  * @property string $name
- * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\DoctorService[] $list
- * @property-read int|null $list_count
+ * @property \Illuminate\Support\Carbon|null $deleted_at
+ * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\DoctorService[] $doctorService
+ * @property-read int|null $doctor_service_count
  * @method static \Illuminate\Database\Eloquent\Builder|Service newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|Service newQuery()
+ * @method static \Illuminate\Database\Query\Builder|Service onlyTrashed()
  * @method static \Illuminate\Database\Eloquent\Builder|Service query()
+ * @method static \Illuminate\Database\Eloquent\Builder|Service whereDeletedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Service whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Service whereName($value)
+ * @method static \Illuminate\Database\Query\Builder|Service withTrashed()
+ * @method static \Illuminate\Database\Query\Builder|Service withoutTrashed()
  * @mixin \Eloquent
  */
 class Service extends Model

@@ -15,14 +15,12 @@ class CreateDoctorWorktimesTable extends Migration
     {
         Schema::create('doctor_worktimes', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('doctor_service_id')->nullable();
+            $table->foreignId('doctor_service_id')->nullable()->constrained()->nullOnDelete();
             $table->unsignedInteger('quota');
             $table->enum('day', ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu']);
             $table->string('time_start', 5);
             $table->string('time_end', 5);
             $table->softDeletes();
-
-            $table->foreign('doctor_service_id')->references('id')->on('doctor_services')->nullOnDelete();
         });
     }
 

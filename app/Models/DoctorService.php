@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int $id
  * @property string $doctor_name
  * @property int|null $service_id
- * @property string|null $deleted_at
+ * @property \Illuminate\Support\Carbon|null $deleted_at
  * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\PatientAppoinment[] $appoinment
  * @property-read int|null $appoinment_count
  * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\DoctorWorktime[] $doctorWorktime
@@ -20,11 +20,14 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property-read \App\Models\Service|null $service
  * @method static \Illuminate\Database\Eloquent\Builder|DoctorService newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|DoctorService newQuery()
+ * @method static \Illuminate\Database\Query\Builder|DoctorService onlyTrashed()
  * @method static \Illuminate\Database\Eloquent\Builder|DoctorService query()
  * @method static \Illuminate\Database\Eloquent\Builder|DoctorService whereDeletedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|DoctorService whereDoctorName($value)
  * @method static \Illuminate\Database\Eloquent\Builder|DoctorService whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|DoctorService whereServiceId($value)
+ * @method static \Illuminate\Database\Query\Builder|DoctorService withTrashed()
+ * @method static \Illuminate\Database\Query\Builder|DoctorService withoutTrashed()
  * @mixin \Eloquent
  */
 class DoctorService extends Model
