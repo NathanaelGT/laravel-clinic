@@ -2,12 +2,12 @@
     "private": true,
     "scripts": {
         "dev": "npm run development",
-        "development": "mix",
-        "watch": "mix watch",
-        "watch-poll": "mix watch -- --watch-options-poll=1000",
-        "hot": "mix watch --hot",
+        "development": "mix --mix-config=webpack.mix.ts",
+        "watch": "mix watch --mix-config=webpack.mix.ts",
+        "watch-poll": "mix watch -- --watch-options-poll=1000 --mix-config=webpack.mix.ts",
+        "hot": "mix watch --hot --mix-config=webpack.mix.ts",
         "prod": "npm run production",
-        "production": "mix --production"
+        "production": "mix --production --mix-config=webpack.mix.ts"
     },
     "devDependencies": {
         "@babel/cli": "^7.12.10",

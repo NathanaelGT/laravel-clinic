@@ -12,25 +12,23 @@ const mix = require('laravel-mix')
 */
 
 mix.sass('resources/scss/app.scss', 'public/css')
-   .js('resources/js/jsx-render.js', 'public/js')
-   .js('resources/js/home.jsx', 'public/js')
-   .js('resources/js/patientAppointment.jsx', 'public/js')
-   .js('resources/js/app.js', 'public/js')
-   .js('resources/js/admin/newService.js', 'public/js/admin')
-   .js('resources/js/admin/doctorList.tsx', 'public/js/admin')
+   .js('resources/ts/jsx-render.ts', 'public/js')
+   .js('resources/ts/home.tsx', 'public/js')
+   .js('resources/ts/patientAppointment.tsx', 'public/js')
+   .js('resources/ts/app.ts', 'public/js')
+   .js('resources/ts/admin/newService.ts', 'public/js/admin')
+   .js('resources/ts/admin/doctorList.tsx', 'public/js/admin')
    .sourceMaps(false, 'source-map')
    .disableNotifications()
    .webpackConfig({
+      resolve: {
+         extensions: ['.ts', '.tsx']
+      },
       module: {
          rules: [
             {
                test: /\.tsx?$/,
                loader: 'babel-loader',
-               exclude: /node_modules/
-            },
-            {
-               test: /\.ts?$/,
-               loader: 'ts-loader',
                exclude: /node_modules/
             }
          ]

@@ -1,44 +1,56 @@
-import Form from '../component/NewServiceForm'
-
-const container = registerRender(document.getElementById('form-container'))
-
-const timeToNumber = time => {
-  const [hours, minutes] = time.split(':')
-
-  return hours * 60 + Number(minutes)
+declare global {
+  interface Window {
+    services: string[]
+  }
 }
 
-const calculateQuota = getSessionTime => ({ number, per, time }, index) => {
+import { QuotaValue, ErrorMessage, ButtonData } from '../declaration/newService'
+import Form from '../component/NewServiceForm'
+
+const container = window.registerRender(document.getElementById('form-container'))
+
+const ERRORMESSAGE_DEFAULT = { time: ['', ''], quota: '', day: '', doctor: '', service: '' }
+
+const timeToNumber = (time: string) => {
+  const [hours, minutes] = time.split(':').map(time => Number(time))
+
+  return hours * 60 + minutes
+}
+
+const calculateQuota = (getSessionTime: boolean) => (
+  { number, per, time }: { number?: string, per?: string, time?: string }, index: number
+) => {
   const _time = data.timeInputValue[index]
-  if (_time) {
+  if (_time.length) {
     const sessionTime = timeToNumber(_time[1]) - timeToNumber(_time[0])
+    let perUnit: number
 
-    if (per === 'Menit') per = 1
-    else if (per === 'Jam') per = 60
-    else per = sessionTime
+    if (per === 'Menit') perUnit = 1
+    else if (per === 'Jam') perUnit = 60
+    else perUnit = sessionTime
 
-    const quota = (time * per) / number
+    const quota = (Number(time) * perUnit) / Number(number)
 
     return getSessionTime ? [quota, sessionTime] : quota
   }
-  return 1
+  throw new Error('Data tidak valid')
 }
 
-const searchValid = index => {
-  const timeError = []
+const searchValid = (index: number) => {
+  const timeError: string[] = []
   for (let i = 0; i < 2; i++) {
     if (!data.timeInputValue[index]?.[i])
       timeError[i] = 'Harap tentukan waktu praktek'
   }
-  const dayInvalid = data.dayValue[index]?.filter(value => value !== null)?.length === 0
+  const dayInvalid = data.dayValue[index]?.filter(value => value !== '')?.length === 0
 
-  let quotaErrorMessage
+  let quotaErrorMessage: string
   const quota = data.quotaValue[index]
   if (!quota.number) quotaErrorMessage = 'Harap tentukan kuota'
   else if (!quota.time) quotaErrorMessage = 'Harap tentukan waktu kuota'
   else if (!quota.per) quotaErrorMessage = 'Harap tentukan pembagian waktu kuota'
   else {
-    const [calculatedQuota, time] = calculateQuota(true)(quota, index)
+    const [calculatedQuota, time] = calculateQuota(true)(quota, index) as number[]
     if (calculatedQuota < 1) quotaErrorMessage = 'Waktu kuota terlalu sedikit'
     else if (time % calculatedQuota !== 0) {
       const fixed = Number((time % calculatedQuota).toFixed(2))
@@ -46,32 +58,61 @@ const searchValid = index => {
     }
   }
 
-  const universal = {}
-  const _data = {}
-  if (data.doctorName === '') universal.doctor = 'Harap isi nama dokter'
-  if (data.serviceName === '') universal.service = 'Harap isi nama layanan'
-  if (timeError.length) _data.time = timeError
-  if (quotaErrorMessage) _data.quota = quotaErrorMessage
-  if (dayInvalid) _data.day = 'Harap pilih hari praktek'
+  const validationMessage = {
+    doctor: data.doctorName === '' ? 'Harap isi nama dokter' : '',
+    service: data.serviceName === '' ? 'Harap isi nama layanan' : '',
+    time: timeError.length ? timeError : ['', ''],
+    quota: quotaErrorMessage ? quotaErrorMessage : '',
+    day: dayInvalid ? 'Harap pilih hari praktek' : ''
+  }
 
-  //jumlah input yang divalidasi 3, kalo semuanya kosong engga perlu ditampilin error kecuali halaman pertama
-  const showError = Object.keys(_data).length !== 3 || index === 0
-  data.errorMessages[index] = showError ? { ..._data, ...universal } : null
+  data.errorMessages[index] = validationMessage
 
-  return !Object.keys(_data).length
+  return Object.values(validationMessage).every(val => (
+    typeof val === 'string'
+      ? val === ''
+      : val.every(val => val === '')
+  ))
+}
+
+const removeLastPage = () => {
+  data.highestIndex--
+  data.quotaValue.pop()
+  data.timeInputValue.pop()
+  data.errorMessages.pop()
+  data.dayValue.pop()
+}
+
+const isEmpty = (index: number) => {
+  const quota = data.quotaValue[index]
+
+  return [
+    data.timeInputValue[index].reduce((total, current) => total += current),
+    data.dayValue[index].length,
+    quota.number,
+    quota.time,
+    quota.per
+  ].every(val => !val)
+}
+
+const setInitialValue = (index: number) => {
+  data.timeInputValue[index] = ['', '']
+  data.quotaValue[index] = { number: '', time: '', per: '' }
+  data.dayValue[index] = []
+  data.errorMessages[index] = { ...ERRORMESSAGE_DEFAULT }
 }
 
 const data = {
   serviceName: '',
   doctorName: '',
-  timeInputValue: [[]],
-  quotaValue: [{}],
-  dayValue: [[]],
+  timeInputValue: <string[][]>[],
+  quotaValue: <QuotaValue[]>[],
+  dayValue: <string[][]>[],
   highestIndex: 0,
   currentIndex: 0,
-  errorMessages: [[]],
+  errorMessages: <ErrorMessage[]>[],
 
-  getButtonsData() {
+  getButtonsData(): ButtonData[] {
     const { currentIndex } = data
     return [
       {
@@ -81,6 +122,7 @@ const data = {
         disabled: currentIndex === 0,
         onclick: () => {
           if (currentIndex > 0) {
+            if (isEmpty(currentIndex)) removeLastPage()
             data.currentIndex--
             container.render(Form(data))
           }
@@ -97,25 +139,14 @@ const data = {
         color: 'outline-primary',
         text: 'Selanjutnya',
         onclick: () => {
-          const quota = data.quotaValue[currentIndex]
-          if (
-            data.timeInputValue[currentIndex].length !== 0 ||
-            data.dayValue[currentIndex].length !== 0 ||
-            quota.number ||
-            quota.time ||
-            quota.per
-          ) {
+          if (currentIndex !== data.highestIndex || !isEmpty(data.currentIndex)) {
             const currentIndex = ++data.currentIndex
             if (currentIndex > data.highestIndex) {
               data.highestIndex = currentIndex
-              data.timeInputValue[currentIndex] = []
-              data.quotaValue[currentIndex] = {}
-              data.dayValue[currentIndex] = []
-              data.errorMessages[currentIndex] = null
+              setInitialValue(currentIndex)
             }
           }
-          else
-            data.errorMessages[currentIndex] = null
+          else data.errorMessages[currentIndex] = { ...ERRORMESSAGE_DEFAULT }
 
           container.render(Form(data))
         }
@@ -123,24 +154,13 @@ const data = {
     ]
   },
 
-  handleSubmit(event) {
+  handleSubmit(event: Event) {
     event.preventDefault()
 
     let trimmed = false
-    const quota = data.quotaValue[data.highestIndex]
-    if (
-      data.timeInputValue[data.highestIndex].length === 0 &&
-      data.dayValue[data.highestIndex].length === 0 &&
-      !quota.number &&
-      !quota.time &&
-      !quota.per
-    ) {
+    if (data.highestIndex > 0 && isEmpty(data.highestIndex)) {
       trimmed = true
-      data.highestIndex--
-      data.quotaValue.pop()
-      data.timeInputValue.pop()
-      data.errorMessages.pop()
-      data.dayValue.pop()
+      removeLastPage()
     }
 
     let isValid = true
@@ -179,10 +199,7 @@ const data = {
 
     if (trimmed) {
       data.highestIndex++
-      data.timeInputValue[data.highestIndex] = []
-      data.quotaValue[data.highestIndex] = {}
-      data.dayValue[data.highestIndex] = []
-      data.errorMessages[data.highestIndex] = null
+      setInitialValue(data.highestIndex)
     }
 
     //render ulang biar errornya keupdate (di tampilan)
@@ -192,17 +209,20 @@ const data = {
         button.disabled = true
         if (button.type === 'submit') {
           button.innerHTML = (`
-              <div class="d-flex justify-content-center">
-                <div class="spinner-border spinner-border-sm" role="status">
-                  <span class="visually-hidden">Loading...</span>
-                </div>
+            <div class="d-flex justify-content-center">
+              <div class="spinner-border spinner-border-sm" role="status">
+                <span class="visually-hidden">Loading...</span>
               </div>
-            `)
+            </div>
+          `)
         }
       })
     }
   }
 }
+setInitialValue(0)
+
+window['data'] = data
 
 container.render(Form(data))
 

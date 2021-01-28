@@ -2,13 +2,19 @@ const today = new Date().toLocaleDateString('id', { weekday: 'long' })
 const days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu']
 
 const showDetail = []
-handleDivClick = (index, scheduleIndex, doctor) => () => {
+const handleDivClick = ({ index, schedule, doctor }: Props) => () => {
   showDetail[index] = !showDetail[index]
-  containers[index].render(<HourInfo index={index} schedule={scheduleIndex} doctor={doctor} />)
+  containers[index].render(<HourInfo index={index} schedule={schedule} doctor={doctor} />)
 }
 
-const HourInfo = ({ index, schedule, doctor }) => (
-  <div onclick={handleDivClick(index, schedule, doctor)} className={showDetail[index] && 'dropup'}>
+interface Props {
+  index: number,
+  schedule: any,
+  doctor: string
+}
+
+const HourInfo = ({ index, schedule, doctor }: Props) => (
+  <div onclick={handleDivClick({ index, schedule, doctor })} className={showDetail[index] && 'dropup'}>
     <p className="card-text mb-1 service-info dropdown-toggle">
       Jam praktek {doctor}{showDetail[index] ? ':' : ' hari ini:'}
     </p>
@@ -27,18 +33,18 @@ const HourInfo = ({ index, schedule, doctor }) => (
   </div>
 )
 
-const containers = document.querySelectorAll('.service-card')
+const containers = document.querySelectorAll<DOMElement>('.service-card')
 containers.forEach((container, index) => {
-  const element = container.querySelector('span.bold')
+  const element = container.querySelector('span.bold') as HTMLSpanElement
   const schedule = JSON.parse(element.getAttribute('data-schedule'))
   const doctor = element.innerText
 
-  registerRender(container).render(<HourInfo index={index} schedule={schedule} doctor={doctor} />)
+  window.registerRender(container).render(<HourInfo index={index} schedule={schedule} doctor={doctor} />)
 })
 
-const doctorsName = document.querySelectorAll('.doctors-name')
+const doctorsName = document.querySelectorAll<HTMLElement>('.doctors-name')
 doctorsName.forEach((doctorsName, index) => {
-  const doctorsNameChildren = Array.from(doctorsName.children)
+  const doctorsNameChildren = Array.from(doctorsName.children) as HTMLElement[]
   doctorsNameChildren.forEach(doctorName => {
     const schedule = JSON.parse(doctorName.getAttribute('data-schedule'))
     const doctor = doctorName.innerText

@@ -2,11 +2,11 @@
   "compilerOptions": {
     "jsx": "react",
     "module": "commonjs",
-    "target": "es5",
+    "target": "esnext",
     "noImplicitAny": false,
     "sourceMap": true
   },
   "include": [
-    "resources/js/**/*"
+    "resources/ts/**/*"
   ],
 }

@@ -1,4 +1,10 @@
-export default ({ value, onchange, checked }) => (
+interface Props {
+  value: string,
+  onchange: (event: Event) => void,
+  checked: boolean
+}
+
+export default ({ value, onchange, checked }: Props) => (
   <div className="form-check form-check-inline">
     <input
       className="form-check-input"

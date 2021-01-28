@@ -1,11 +1,24 @@
+import { ErrorMessage, ButtonData, QuotaValue } from '../declaration/newService'
 import Input from './Input'
 import MultipleInput from './MultipleInput'
 import InlineCheckbox from './InlineCheckbox'
 
-export default data => {
+interface Props {
+  handleSubmit: (event: Event) => void,
+  errorMessages: ErrorMessage[],
+  currentIndex: number,
+  getButtonsData: () => ButtonData[],
+  quotaValue: QuotaValue[],
+  serviceName: string,
+  doctorName: string,
+  timeInputValue: string[][],
+  dayValue: string[][]
+}
+
+export default (data: Props) => {
   const { handleSubmit, errorMessages, currentIndex, getButtonsData } = data
-  const updateQuotaValue = field => event => {
-    data.quotaValue[currentIndex][field] = event.target.value
+  const updateQuotaValue = (field: 'number' | 'time' | 'per') => (event: Event) => {
+    data.quotaValue[currentIndex][field] = (event.target as any).value
   }
 
   return (
@@ -16,13 +29,13 @@ export default data => {
         <div className="py-1">
           <Input
             placeholder="Nama Dokter"
-            name="service"
+            name="doctor"
             value={data.doctorName}
             oninput={event => {
-              data.doctorName = event.target.value
+              data.doctorName = (event.target as HTMLInputElement).value
             }}
             currentIndex={currentIndex}
-            errorMessage={errorMessages[currentIndex]?.doctor}
+            errorMessage={errorMessages[currentIndex].doctor}
           />
         </div>
 
@@ -32,9 +45,9 @@ export default data => {
             name="service"
             value={data.serviceName}
             oninput={event => {
-              data.serviceName = event.target.value
+              data.serviceName = (event.target as HTMLInputElement).value
             }}
-            errorMessage={errorMessages[currentIndex]?.service}
+            errorMessage={errorMessages[currentIndex].service}
             list="services"
           />
 
@@ -55,10 +68,10 @@ export default data => {
                 {..._data}
                 type="time"
                 oninput={event => {
-                  data.timeInputValue[currentIndex][index] = event.target.value
+                  data.timeInputValue[currentIndex][index] = (event.target as HTMLInputElement).value
                 }}
-                value={data.timeInputValue?.[currentIndex]?.[index]}
-                errorMessage={errorMessages[currentIndex]?.time?.[index]}
+                value={data.timeInputValue[currentIndex][index]}
+                errorMessage={errorMessages[currentIndex].time[index]}
               />
             </div>
           ))}
@@ -77,7 +90,7 @@ export default data => {
           rightOninput={updateQuotaValue('per')}
           rightValue={data.quotaValue[currentIndex].per}
           options={['Sesi', 'Jam', 'Menit']}
-          errorMessage={errorMessages[currentIndex]?.quota}
+          errorMessage={errorMessages[currentIndex].quota}
         />
       </div>
 
@@ -94,7 +107,7 @@ export default data => {
                   value={value}
                   checked={data.dayValue[currentIndex].indexOf(value) !== -1}
                   onchange={event => {
-                    if (event.target.checked)
+                    if ((event.target as HTMLInputElement).checked)
                       data.dayValue[currentIndex].push(value)
                     else
                       data.dayValue[currentIndex] = data.dayValue[currentIndex].filter(day => day !== value)
@@ -105,17 +118,17 @@ export default data => {
           ))}
         </div>
         <div className="d-flex justify-content-center">
-          <div className={`form-text text-danger ${!errorMessages[currentIndex]?.day && 'input-valid-text'}`}>
-            {errorMessages[currentIndex]?.day || '\xA0'}
+          <div className={`form-text text-danger ${!errorMessages[currentIndex].day && 'input-valid-text'}`}>
+            {errorMessages[currentIndex].day || '\xA0'}
           </div>
         </div>
 
         <div className="row my-4">
-          {getButtonsData().map(({ className, color, text, type, disabled = false, onclick = null }) => (
+          {getButtonsData().map(({ className, color, text, type = 'button', disabled = false, onclick = null }) => (
             <div className={className}>
               <div className="d-grid">
                 <button
-                  type={type || 'button'}
+                  type={type}
                   className={`btn btn-${color}`}
                   disabled={disabled}
                   onclick={onclick}

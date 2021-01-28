@@ -3,15 +3,11 @@ declare global {
     plusUrl: string,
     minusUrl: string
   }
-  const React
 }
 
-//@ts-ignore
-import addPlusMinusIconToSiblings from './doctorList/addPlusMinusIconToSiblings.tsx'
-//@ts-ignore
-import deleteTableRecord from './doctorList/deleteTableRecord.ts'
-//@ts-ignore
-import { fetching, validate } from './doctorList/logic.ts'
+import addPlusMinusIconToSiblings from './doctorList/addPlusMinusIconToSiblings'
+import deleteTableRecord from './doctorList/deleteTableRecord'
+import { fetching, validate } from './doctorList/logic'
 
 const applyLiveEdit = (element: HTMLElement) => {
   let text = element.innerText
@@ -72,7 +68,7 @@ const applyLiveEdit = (element: HTMLElement) => {
       return element.innerText = text
     }
 
-    const validation = validate[element.dataset.type](newText)
+    const validation = validate[element.dataset.type](newText, element)
     if (validation) {
       element.title = validation
       return element.classList.add('text-danger')

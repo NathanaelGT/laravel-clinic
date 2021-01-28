@@ -1,7 +1,18 @@
+interface Window {
+  schedules: {
+    Senin?: string[],
+    Selasa?: string[],
+    Rabu?: string[],
+    Kamis?: string[],
+    Sabtu?: string[],
+    Jumat?: string[]
+  }[]
+}
+
 const doctorInput = document.getElementById('doctor')
-const dayInput = document.getElementById('day')
+const dayInput = document.getElementById('day') as HTMLSelectElement
 const timeInput = document.getElementById('time')
-const inputNumber = document.querySelectorAll('input[data-type="number"]')
+const inputNumber = document.querySelectorAll<HTMLInputElement>('input[data-type="number"]')
 const form = document.querySelector('form')
 
 inputNumber.forEach(input => {
@@ -13,7 +24,7 @@ inputNumber.forEach(input => {
 
 form.classList.remove('d-none')
 
-const Option = ({ value }) => <option value={value}>{value}</option>
+const OptionElement = ({ value }) => <option value={value}>{value}</option>
 
 if (doctorInput.tagName === 'SELECT') {
   const timeInputWarning = <option disabled ariaHidden>Harap pilih hari praktek terlebih dahulu</option>
@@ -22,10 +33,10 @@ if (doctorInput.tagName === 'SELECT') {
   doctorInput.onchange = event => {
     dayInput.innerHTML = ''
     dayInput.appendChild(placeholder)
-    dayInput.pointer = event.target.selectedIndex - 1
+    dayInput['pointer'] = (event.target as HTMLSelectElement).selectedIndex - 1
 
-    Object.keys(schedules[event.target.selectedIndex - 1]).forEach(day => {
-      dayInput.appendChild(<Option value={day} />)
+    Object.keys(window.schedules[(event.target as HTMLSelectElement).selectedIndex - 1]).forEach(day => {
+      dayInput.appendChild(<OptionElement value={day} />)
     })
 
     timeInput.innerHTML = ''
@@ -42,16 +53,16 @@ dayInput.onchange = event => {
   timeInput.innerHTML = ''
   timeInput.appendChild(timeInputPlaceholder)
 
-  const workingSchedule = schedules[Number(event.target.pointer) || 0]
+  const workingSchedule = window.schedules[Number(event.target['pointer']) || 0]
 
   let firstOption
-  workingSchedule[event.target.value].forEach(hour => {
-    const option = <Option value={hour} />
+  workingSchedule[(event.target as HTMLSelectElement).value].forEach((hour: string) => {
+    const option = <OptionElement value={hour} />
     if (!firstOption) firstOption = option
     timeInput.appendChild(option)
   })
 
-  if (workingSchedule[event.target.value].length === 1)
+  if (workingSchedule[(event.target as HTMLSelectElement).value].length === 1)
     firstOption.selected = true
   else
     timeInputPlaceholder.selected = true

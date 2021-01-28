@@ -3,10 +3,26 @@ const validateNumber = event => {
     event.preventDefault()
 }
 
+interface Props {
+  name: string,
+  leftPlaceholder: string,
+  leftOninput: (event: Event) => any,
+  leftValue: string,
+  separator: string,
+  middlePlaceholder: string,
+  middleOninput: (event: Event) => any,
+  middleValue: string,
+  rightPlaceholder: string,
+  rightOninput: (event: Event) => any,
+  rightValue: string,
+  options: string[],
+  errorMessage?: any | null
+}
+
 export default ({
   name, leftPlaceholder, leftOninput, leftValue, separator, middlePlaceholder, middleOninput,
   middleValue, rightPlaceholder, rightOninput, rightValue, options, errorMessage = null
-}) => (
+}): Props => (
   <div>
     <label htmlFor={name}>{leftPlaceholder}</label>
     <div className="input-group">
@@ -34,7 +50,7 @@ export default ({
       />
       <select className="form-select" oninput={rightOninput}>
         <option
-          selected={rightValue === undefined}
+          selected={rightValue === ''}
           hidden
           disabled
           ariaHidden

@@ -1,11 +1,22 @@
+interface Props {
+  placeholder: string,
+  name: string,
+  type?: 'text' | 'time',
+  oninput?: (event: Event) => any | null,
+  value?: string,
+  currentIndex?: number | -1,
+  onkeypress?: () => any | null,
+  errorMessage?: string | null,
+  list?: string | null
+}
+
 export default ({
   placeholder, name, type = 'text', oninput = null, value = '',
   currentIndex = -1, onkeypress = null, errorMessage = null, list = null
-}) => {
+}: Props) => {
   const input = (
     <input
       id={name}
-      name={name}
       type={type}
       placeholder={`Masukkan ${placeholder.toLowerCase()}`}
       ariaLabel={placeholder}
