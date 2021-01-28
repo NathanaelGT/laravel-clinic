@@ -10,21 +10,23 @@ class HomeController extends Controller
 {
     public function index()
     {
-        $schedule = DoctorWorktime::with('doctorService.service')->get()->toArray();
+        $services = DoctorService::with('doctorWorktime', 'service')->get()->toArray();
 
-        $data = array_reduce($schedule, function($carry, $item) {
-            $serviceName = $item['doctor_service']['service']['name'];
-            $time = $item['time_start'] . ' - ' . $item['time_end'];
-
+        $data = array_reduce($services, function($carry, $item) {
+            $serviceName = $item['service']['name'];
             $array = &$carry[$serviceName];
-            $doctor = &$array[$item['doctor_service']['doctor_name']];
-            $day = &$doctor[$item['day']];
 
             if (!isset($array)) $array = [];
-            if (!isset($doctor)) $doctor = [];
 
-            if (!isset($day)) $day = $time;
-            else $day .= ', ' . $time;
+            $array[$item['doctor_name']] = array_reduce($item['doctor_worktime'], function($carry, $item) {
+                $array = &$carry[$item['day']];
+                $time = $item['time_start'] . ' - ' . $item['time_end'];
+
+                if (!isset($array)) $array = $time;
+                else $array .= ', ' . $time;
+
+                return $carry;
+            }, []);
 
             return $carry;
         }, []);
