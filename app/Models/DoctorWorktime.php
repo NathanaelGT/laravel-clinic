@@ -17,7 +17,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string $time_end
  * @property \Illuminate\Support\Carbon|null $deleted_at
  * @property-read \App\Models\DoctorService|null $doctorService
- * @property-read \App\Models\ServiceAppointment|null $serviceAppointment
+ * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\ServiceAppointment[] $serviceAppointment
+ * @property-read int|null $service_appointment_count
  * @method static \Illuminate\Database\Eloquent\Builder|DoctorWorktime newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|DoctorWorktime newQuery()
  * @method static \Illuminate\Database\Query\Builder|DoctorWorktime onlyTrashed()

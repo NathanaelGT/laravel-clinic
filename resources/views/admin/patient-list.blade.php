@@ -1,3 +1,7 @@
+@php
+  use App\Helpers;
+  use Carbon\Carbon;
+@endphp
 <x-app>
   <div class="d-flex justify-content-center">
     <div class="table-responsive my-xl-5 m-lg-4 m-md-3 m-2">
@@ -14,24 +18,35 @@
         </thead>
         <tbody>
           @foreach ($patients as $patient)
-          @php $time_end = (clone $patient->time_start)->addMinutes($patient->service_per) @endphp
-          <tr @if ($time_end->isPast()) class="bg-light" @endif>
-            <td>{{ $patient->service }}</td>
-            <td>{{ $patient->doctor }}</td>
-            <td>{{ $patient->name }}</td>
-            <td>{{ $patient->time_start->isoFormat('dddd, D MMMM YYYY') }}</td>
-            <td>{{ $patient->time_start->isoFormat('HH:mm') }} - {{ $time_end->isoFormat('HH:mm') }}</td>
+          @php
+            $doctorWorktime = $patient['service_appointment']['doctor_worktime'];
+            $doctor = $doctorWorktime['doctor_service'];
+            $slotIndex = array_search($patient['patient_id'], $patient['service_appointment']['quota']);
+
+            $timeStart = Helpers::timeToNumber($doctorWorktime['time_start']);
+            $timeStart += $slotIndex * $doctorWorktime['quota'];
+
+            $timeEnd = Helpers::numberToTime($timeStart + $doctorWorktime['quota']);
+            $timeStart = Helpers::numberToTime($timeStart);
+            $date = Carbon::parse($patient['service_appointment']['date'] . ' ' . $timeEnd);
+          @endphp
+          <tr @if ($date->isPast()) class="bg-light" @endif>
+            <td>{{ $doctor['service']['name'] }}</td>
+            <td>{{ $doctor['doctor_name'] }}</td>
+            <td>{{ $patient['patient']['name'] }}</td>
+            <td>{{ $date->isoFormat('dddd, D MMMM YYYY') }}</td>
+            <td>{{ "$timeStart - $timeEnd" }}</td>
             <td>
               <a
                 href="#"
-                class="btn btn-success @if ($time_end->isFuture()) invisible @endif"
-                @if ($time_end->isFuture()) aria-hidden @endif
+                class="btn btn-success @if ($date->isFuture()) invisible @endif"
+                @if ($date->isFuture()) aria-hidden @endif
               >
                 Selesai
               </a>
               <a href="#" class="btn btn-danger">Batal</a>
               <a
-                href="{{ route('admin@patient-reschedule', ['id' => $patient->id]) }}"
+                href="{{ route('admin@patient-reschedule', ['id' => $patient['id']]) }}"
                 class="btn btn-warning text-white"
               >
                 Ubah

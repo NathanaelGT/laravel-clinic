@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\PatientAppointment;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
@@ -66,12 +67,14 @@ class PatientController extends Controller
 
     public function list()
     {
-        $patients = [];
-        foreach ($this->dummy as $patient) {
-            if ($patient->status === config('global.status')[0])
-                array_push($patients, $patient);
-        }
-        //WHERE status = `Menunggu` ORDER BY `time_start`
+        $service = 'service_appointments';
+        $patients = PatientAppointment::with(
+            'patient',
+            'serviceAppointment.doctorWorktime.doctorService.service'
+        )->whereStatus('Menunggu')
+        ->join($service, "$service.id", '=', 'patient_appointments.service_appointment_id')
+        ->orderBy("$service.date")
+        ->get()->toArray();
 
         return view('admin.patient-list', compact('patients'));
     }

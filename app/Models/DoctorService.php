@@ -13,8 +13,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string $doctor_name
  * @property int|null $service_id
  * @property \Illuminate\Support\Carbon|null $deleted_at
- * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\PatientAppoinment[] $appoinment
- * @property-read int|null $appoinment_count
+ * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\PatientAppointment[] $appointment
+ * @property-read int|null $appointment_count
  * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\DoctorWorktime[] $doctorWorktime
  * @property-read int|null $doctor_worktime_count
  * @property-read \App\Models\Service|null $service
@@ -43,9 +43,9 @@ class DoctorService extends Model
         return $this->belongsTo(Service::class);
     }
 
-    public function appoinment()
+    public function appointment()
     {
-        return $this->hasMany(PatientAppoinment::class);
+        return $this->hasMany(PatientAppointment::class);
     }
 
     public function doctorWorktime()

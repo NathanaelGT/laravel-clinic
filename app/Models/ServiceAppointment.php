@@ -39,11 +39,11 @@ class ServiceAppointment extends Model
 
     public function patientAppointment()
     {
-        $this->hasMany(PatientAppoinment::class);
+        return $this->hasMany(PatientAppointment::class);
     }
 
-    public function doctorWorktimes()
+    public function doctorWorktime()
     {
-        $this->belongsTo(DoctorWorktime::class);
+        return $this->belongsTo(DoctorWorktime::class);
     }
 }

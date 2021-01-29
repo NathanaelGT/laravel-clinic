@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Helpers;
 use App\Models\DoctorService;
 use App\Models\Patient;
+use App\Models\PatientAppointment;
 use App\Models\Service;
 use App\Models\ServiceAppointment;
 use Carbon\Carbon;
@@ -107,6 +108,7 @@ class PatientRegistrationController extends Controller
             if ($serviceAppointment->exists) $slots = $serviceAppointment['quota'];
 
             $index = 0;
+            $patientId = 0;
             for ($time = $scheduleStart; $time < $scheduleEnd; $time += $quota) {
                 if ($time === $patientStart) {
                     $patientId = Patient::updateOrCreate([
@@ -126,6 +128,12 @@ class PatientRegistrationController extends Controller
             }
             $serviceAppointment->quota = $slots;
             $serviceAppointment->save();
+
+            PatientAppointment::create([
+                'patient_id' => $patientId,
+                'service_appointment_id' => $serviceAppointment['id'],
+                'status' => 'Menunggu'
+            ]);
 
             break;
         }

@@ -17,12 +17,7 @@ class CreatePatientAppointmentsTable extends Migration
             $table->id();
             $table->foreignId('patient_id')->nullable()->constrained()->nullOnDelete();
             $table->foreignId('service_appointment_id')->nullable()->constrained()->nullOnDelete();
-            $table->enum('day', ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu']);
-            $table->string('time_start', 5);
-            $table->string('time_end', 5);
             $table->enum('status', ['Menunggu', 'Selesai', 'Dibatalkan']);
-            $table->timestamps();
-            $table->softDeletes();
         });
     }
 

@@ -13,8 +13,8 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $nik
  * @property string $phone_number
  * @property string $address
- * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\PatientAppoinment[] $appoinment
- * @property-read int|null $appoinment_count
+ * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\PatientAppointment[] $patientAppointment
+ * @property-read int|null $patient_appointment_count
  * @method static \Illuminate\Database\Eloquent\Builder|Patient newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|Patient newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|Patient query()
@@ -31,8 +31,8 @@ class Patient extends Model
     public $fillable = ['name', 'nik', 'phone_number', 'address'];
     public $timestamps = false;
 
-    public function appoinment()
+    public function patientAppointment()
     {
-        return $this->hasMany(PatientAppoinment::class);
+        return $this->hasMany(PatientAppointment::class);
     }
 }
