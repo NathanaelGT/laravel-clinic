@@ -1,3 +1,4 @@
+@php use Carbon\Carbon; @endphp
 <x-app>
   <div class="row">
     <div class="col-lg-6 offset-lg-3 col-md-8 offset-md-2 col-sm-10 offset-sm-1 full-height">
@@ -62,7 +63,10 @@
             'name' => 'date',
             'options' => isset($patient->doctor) ? $availableDays : (sizeof($doctors) > 1
               ? 'Harap pilih doktek terlebih dahulu'
-              : array_keys($schedules[0])),
+              : array_map(
+                fn ($value) => Carbon::parse($value)->isoFormat('dddd, D MMMM YYYY'),
+                array_keys($schedules[0])
+              )),
             'selected' => isset($patient->doctor) ? $patient->time_start->isoFormat('dddd') : ''
           ],
           [
