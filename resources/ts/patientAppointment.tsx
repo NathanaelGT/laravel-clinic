@@ -55,42 +55,53 @@ inputNumber.forEach(input => {
 
 form.classList.remove('d-none')
 
+
+const timeInputPlaceholder = <option hidden disabled ariaHidden>Pilih jam praktek</option>
 const OptionElement = ({ value, formatedValue = null }) => <option value={value}>{formatedValue ?? value}</option>
 
-if (doctorInput.tagName === 'SELECT') {
+const showDateInputOptions = (index: number) => {
   const timeInputWarning = <option disabled ariaHidden>Harap pilih hari praktek terlebih dahulu</option>
   const placeholder = <option hidden disabled ariaHidden>Pilih hari praktek</option>
 
-  doctorInput.onchange = event => {
-    dateInput.innerHTML = ''
-    dateInput.appendChild(placeholder)
-    dateInput['pointer'] = (event.target as HTMLSelectElement).selectedIndex - 1
+  dateInput.innerHTML = ''
+  dateInput.appendChild(placeholder)
 
-    Object.keys(window.schedules[(event.target as HTMLSelectElement).selectedIndex - 1]).forEach(unixSeconds => {
-      const _date = new Date(Number(unixSeconds) * 1000)
-      const date = _date.getDate()
-      const day = _date.toLocaleString('id-ID', { weekday: 'long' })
-      const month = _date.toLocaleString('id-ID', { month: 'long' })
-      const year = _date.getFullYear()
+  Object.keys(window.schedules[index]).forEach(unixSeconds => {
+    const _date = new Date(Number(unixSeconds) * 1000)
+    const date = _date.getDate()
+    const day = _date.toLocaleString('id-ID', { weekday: 'long' })
+    const month = _date.toLocaleString('id-ID', { month: 'long' })
+    const year = _date.getFullYear()
 
-      dateInput.appendChild(
-        <OptionElement
-          value={unixSeconds}
-          formatedValue={`${day}, ${date} ${month} ${year}`}
-        />
-      )
-    })
+    dateInput.appendChild(
+      <OptionElement
+        value={unixSeconds}
+        formatedValue={`${day}, ${date} ${month} ${year}`}
+      />
+    )
+  })
 
-    timeInput.innerHTML = ''
-    timeInput.appendChild(timeInputPlaceholder)
-    timeInput.appendChild(timeInputWarning)
+  timeInput.innerHTML = ''
+  timeInput.appendChild(timeInputPlaceholder)
+  timeInput.appendChild(timeInputWarning)
 
-    placeholder.selected = true
-    timeInputPlaceholder.selected = true
-  }
+  placeholder.selected = true
+  timeInputPlaceholder.selected = true
 }
 
-const timeInputPlaceholder = <option hidden disabled ariaHidden>Pilih jam praktek</option>
+if (doctorInput.tagName === 'SELECT') {
+  doctorInput.onchange = event => {
+    showDateInputOptions((event.target as HTMLSelectElement).selectedIndex - 1)
+    dateInput['pointer'] = (event.target as HTMLSelectElement).selectedIndex - 1
+  }
+}
+else {
+  showDateInputOptions(0)
+  doctorInput.parentElement.appendChild(
+    <input type="hidden" name="doctor" value={(doctorInput as HTMLInputElement).value} />
+  )
+}
+
 dateInput.onchange = event => {
   timeInput.innerHTML = ''
   timeInput.appendChild(timeInputPlaceholder)
