@@ -9,34 +9,76 @@ interface Window {
   }[]
 }
 
+const isNumber = (val: string) => !isNaN(Number(val)) && !/\./.test(val)
+
+const cacheInputValue = [
+  { validation: () => true, element: document.getElementById('name') as HTMLInputElement },
+  { validation: isNumber, element: document.getElementById('nik') as HTMLInputElement },
+  { validation: isNumber, element: document.getElementById('phone-number') as HTMLInputElement },
+  { validation: () => true, element: document.getElementById('address') as HTMLInputElement }
+]
+
 const doctorInput = document.getElementById('doctor')
-const dayInput = document.getElementById('day') as HTMLSelectElement
+const dateInput = document.getElementById('date') as HTMLSelectElement
 const timeInput = document.getElementById('time')
 const inputNumber = document.querySelectorAll<HTMLInputElement>('input[data-type="number"]')
 const form = document.querySelector('form')
+
+
+cacheInputValue.forEach(({ element, validation }) => {
+  if (!element.value) {
+    const key = 'laravel-clinic:' + element.id + '-input';
+
+    element.oninput = (event: Event) => {
+      localStorage.setItem(key, (event.target as HTMLInputElement).value)
+    }
+
+    const savedValue = localStorage.getItem(key)
+    if (validation(savedValue)) element.value = savedValue.slice(0, element.maxLength)
+    else localStorage.removeItem(key)
+  }
+})
+
 
 inputNumber.forEach(input => {
   input.onkeypress = event => {
     if (event.which !== 8 && event.which !== 0 && event.which < 48 || event.which > 57)
       event.preventDefault()
   }
+
+  input.onpaste = () => {
+    setTimeout(() => {
+      input.value = input.value.replace(/\D/g, '')
+    }, 0)
+  }
 })
 
 form.classList.remove('d-none')
 
-const OptionElement = ({ value }) => <option value={value}>{value}</option>
+const OptionElement = ({ value, formatedValue = null }) => <option value={value}>{formatedValue ?? value}</option>
 
 if (doctorInput.tagName === 'SELECT') {
   const timeInputWarning = <option disabled ariaHidden>Harap pilih hari praktek terlebih dahulu</option>
   const placeholder = <option hidden disabled ariaHidden>Pilih hari praktek</option>
 
   doctorInput.onchange = event => {
-    dayInput.innerHTML = ''
-    dayInput.appendChild(placeholder)
-    dayInput['pointer'] = (event.target as HTMLSelectElement).selectedIndex - 1
+    dateInput.innerHTML = ''
+    dateInput.appendChild(placeholder)
+    dateInput['pointer'] = (event.target as HTMLSelectElement).selectedIndex - 1
 
-    Object.keys(window.schedules[(event.target as HTMLSelectElement).selectedIndex - 1]).forEach(day => {
-      dayInput.appendChild(<OptionElement value={day} />)
+    Object.keys(window.schedules[(event.target as HTMLSelectElement).selectedIndex - 1]).forEach(unixSeconds => {
+      const _date = new Date(Number(unixSeconds) * 1000)
+      const date = _date.getDate()
+      const day = _date.toLocaleString('id-ID', { weekday: 'long' })
+      const month = _date.toLocaleString('id-ID', { month: 'long' })
+      const year = _date.getFullYear()
+
+      dateInput.appendChild(
+        <OptionElement
+          value={unixSeconds}
+          formatedValue={`${day}, ${date} ${month} ${year}`}
+        />
+      )
     })
 
     timeInput.innerHTML = ''
@@ -49,7 +91,7 @@ if (doctorInput.tagName === 'SELECT') {
 }
 
 const timeInputPlaceholder = <option hidden disabled ariaHidden>Pilih jam praktek</option>
-dayInput.onchange = event => {
+dateInput.onchange = event => {
   timeInput.innerHTML = ''
   timeInput.appendChild(timeInputPlaceholder)
 

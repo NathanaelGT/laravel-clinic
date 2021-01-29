@@ -23,24 +23,28 @@
           [
             'placeholder' => 'Nama',
             'name' => 'name',
-            'value' => $patient->name ?? ''
+            'value' => $patient->name ?? '',
+            'max' => 255
           ],
           [
             'placeholder' => 'NIK',
             'name' => 'nik',
             'value' => $patient->nik ?? '',
-            'type' => 'number'
+            'type' => 'number',
+            'max' => 15
           ],
           [
             'placeholder' => 'No. HP',
             'name' => 'phone-number',
             'value' => $patient->phone_number ?? '',
-            'type' => 'number'
+            'type' => 'number',
+            'max' => 15
           ],
           [
             'placeholder' => 'Alamat',
             'name' => 'address',
-            'value' => $patient->address ?? ''
+            'value' => $patient->address ?? '',
+            'max' => 255
           ]
         ] as $data)
         <x-input :data="$data" />
@@ -54,8 +58,8 @@
             'selected' => $patient->doctor ?? ''
           ],
           [
-            'placeholder' => 'Hari Praktek',
-            'name' => 'day',
+            'placeholder' => 'Tanggal Praktek',
+            'name' => 'date',
             'options' => isset($patient->doctor) ? $availableDays : (sizeof($doctors) > 1
               ? 'Harap pilih doktek terlebih dahulu'
               : array_keys($schedules[0])),

@@ -4,6 +4,15 @@
       <h1>Klinik Foo Bar</h1>
       <h3>Lorem ipsum dolor sit amet consectetur adipisicing elit. Vero quae sint laudantium ducimus maiores facere possimus perspiciatis odit aliquid qui. Sapiente voluptatibus vitae facere delectus nihil odit necessitatibus praesentium fugiat.</h3>
     </div>
+
+    @if (Session::has('message'))
+      <div class="col-md-10 offset-md-1 my-3">
+        <div class="alert alert-success d-inline-block" role="alert">
+          {!! Session::get('message') !!}
+        </div>
+      </div>
+    @endif
+
     <div class="col-md-1"></div>
 
     <div class="col-md-10 offset-md-1 px-0">

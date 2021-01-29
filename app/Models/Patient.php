@@ -28,6 +28,8 @@ use Illuminate\Database\Eloquent\Model;
 class Patient extends Model
 {
     use HasFactory;
+    public $fillable = ['name', 'nik', 'phone_number', 'address'];
+    public $timestamps = false;
 
     public function appoinment()
     {

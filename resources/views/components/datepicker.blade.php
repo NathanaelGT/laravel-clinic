@@ -6,15 +6,12 @@
   <input
     id="{{ $kebab }}"
     name="{{ $kebab }}"
-    @if (isset($data['type'])) data-type="{{ $data['type'] }}" @endif
-    @if (isset($data['max'])) maxlength="{{ $data['max'] }}" @endif
+    type="date"
     placeholder="Masukkan {{ Str::lower($data['placeholder']) }}"
     class="form-control"
     autocomplete="off"
-    @if (isset($data['value']) && $data['value'])
-    value="{{ $data['value'] }}"
-    disabled
-    @endif
+    min="{{ $data['min'] ?? '' }}"
+    max="{{ $data['max'] ?? '' }}"
     required
   />
   <div class="form-text text-danger">&nbsp;</div>

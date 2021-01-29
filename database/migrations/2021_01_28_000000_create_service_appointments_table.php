@@ -16,8 +16,8 @@ class CreateServiceAppointmentsTable extends Migration
         Schema::create('service_appointments', function (Blueprint $table) {
             $table->id();
             $table->foreignId('doctor_worktime_id')->nullable()->constrained()->nullOnDelete();
-            $table->string('date', 20);
-            $table->json('quota');
+            $table->date('date');
+            $table->text('quota');
         });
     }
 

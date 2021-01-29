@@ -24,6 +24,8 @@ use Illuminate\Database\Eloquent\Model;
 class ServiceAppointment extends Model
 {
     use HasFactory;
+    public $fillable = ['doctor_worktime_id', 'date', 'quota'];
+    public $timestamps = false;
 
     public function getQuotaAttribute($value)
     {
@@ -32,7 +34,7 @@ class ServiceAppointment extends Model
 
     public function setQuotaAttribute($value)
     {
-        return implode(',', $value);
+        $this->attributes['quota'] = implode(',', $value);
     }
 
     public function patientAppointment()

@@ -48,6 +48,6 @@ class DoctorWorktime extends Model
 
     public function serviceAppointment()
     {
-        return $this->hasOne(ServiceAppointment::class);
+        return $this->hasMany(ServiceAppointment::class);
     }
 }
