@@ -21,13 +21,8 @@
           @php
             $doctorWorktime = $patient['service_appointment']['doctor_worktime'];
             $doctor = $doctorWorktime['doctor_service'];
-            $slotIndex = array_search($patient['patient_id'], $patient['service_appointment']['quota']);
+            [$timeStart, $timeEnd] = Helpers::getPatientMeetHour($doctorWorktime, $patient);
 
-            $timeStart = Helpers::timeToNumber($doctorWorktime['time_start']);
-            $timeStart += $slotIndex * $doctorWorktime['quota'];
-
-            $timeEnd = Helpers::numberToTime($timeStart + $doctorWorktime['quota']);
-            $timeStart = Helpers::numberToTime($timeStart);
             $date = Carbon::parse($patient['service_appointment']['date'] . ' ' . $timeEnd);
           @endphp
           <tr @if ($date->isPast()) class="bg-light" @endif>
@@ -46,7 +41,7 @@
               </a>
               <a href="#" class="btn btn-danger">Batal</a>
               <a
-                href="{{ route('admin@patient-reschedule', ['id' => $patient['id']]) }}"
+                href="{{ route('admin@patient-reschedule', ['patientAppointment' => $patient['id']]) }}"
                 class="btn btn-warning text-white"
               >
                 Ubah

@@ -10,9 +10,6 @@
       <form action="{{ $formAction }}" method="post" class="d-none">
         @method($formMethod)
         @csrf
-        @if (isset($id))
-        <input type="hidden" name="id" value="{{ $id }}" />
-        @endif
 
         @foreach ([
           [
@@ -23,27 +20,27 @@
           [
             'placeholder' => 'Nama',
             'name' => 'name',
-            'value' => $patient->name ?? '',
+            'value' => $patient['name'] ?? '',
             'max' => 255
           ],
           [
             'placeholder' => 'NIK',
             'name' => 'nik',
-            'value' => $patient->nik ?? '',
+            'value' => $patient['nik'] ?? '',
             'type' => 'number',
             'max' => 15
           ],
           [
             'placeholder' => 'No. HP',
             'name' => 'phone-number',
-            'value' => $patient->phone_number ?? '',
+            'value' => $patient['phone_number'] ?? '',
             'type' => 'number',
             'max' => 15
           ],
           [
             'placeholder' => 'Alamat',
             'name' => 'address',
-            'value' => $patient->address ?? '',
+            'value' => $patient['address'] ?? '',
             'max' => 255
           ]
         ] as $data)
@@ -55,13 +52,13 @@
             'placeholder' => 'Nama Dokter',
             'name' => 'doctor',
             'options' => $doctors,
-            'selected' => $patient->doctor ?? ''
+            'selected' => $patient['doctor'] ?? ''
           ],
           [
             'placeholder' => 'Tanggal Praktek',
             'name' => 'date',
-            'options' => isset($patient->doctor) ? $availableDays : 'Harap pilih doktek terlebih dahulu',
-            'selected' => isset($patient->doctor) ? $patient->time_start->isoFormat('dddd') : ''
+            'options' => 'Harap pilih doktek terlebih dahulu',
+            'selected' => ''
           ],
           [
             'placeholder' => 'Jam Praktek',
@@ -75,7 +72,7 @@
 
         <div class="d-grid mb-5">
           <button type="submit" class="btn btn-primary">
-            {{ isset($patient->doctor) ? 'Ubah' : 'Daftar' }}
+            {{ isset($patient['doctor']) ? 'Ubah' : 'Daftar' }}
           </button>
         </div>
       </form>
@@ -85,6 +82,9 @@
   <x-slot name="script">
     <script>
       window.schedules = {!! json_encode($schedules) !!}
+      @if (isset($seleted))
+      window.selected = {!! json_encode($seleted) !!}
+      @endif
     </script>
     <script src="{{ mix('js/patientAppointment.js') }}"></script>
   </x-slot>

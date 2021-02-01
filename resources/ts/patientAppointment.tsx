@@ -6,7 +6,12 @@ interface Window {
     Kamis?: string[],
     Sabtu?: string[],
     Jumat?: string[]
-  }[]
+  }[],
+  selected?: {
+    doctor: string,
+    date: string,
+    time: string
+  }
 }
 
 const isNumber = (val: string) => !isNaN(Number(val)) && !/\./.test(val)
@@ -20,7 +25,7 @@ const cacheInputValue = [
 
 const doctorInput = document.getElementById('doctor')
 const dateInput = document.getElementById('date') as HTMLSelectElement
-const timeInput = document.getElementById('time')
+const timeInput = document.getElementById('time') as HTMLSelectElement
 const inputNumber = document.querySelectorAll<HTMLInputElement>('input[data-type="number"]')
 const form = document.querySelector('form')
 
@@ -57,8 +62,20 @@ form.classList.remove('d-none')
 
 
 const timeInputPlaceholder = <option hidden disabled ariaHidden>Pilih jam praktek</option>
-const OptionElement = ({ value, formatedValue = null }) => <option value={value}>{formatedValue ?? value}</option>
+const OptionElement = ({ value, formatedValue = null, disabled = false }) => (
+  <option value={value} disabled={disabled}>{formatedValue ?? value}</option>
+)
+const getHumanReadableDate = (unixSeconds: string) => {
+  const _date = new Date(Number(unixSeconds) * 1000)
+  const date = _date.getDate()
+  const day = _date.toLocaleString('id-ID', { weekday: 'long' })
+  const month = _date.toLocaleString('id-ID', { month: 'long' })
+  const year = _date.getFullYear()
 
+  return `${day}, ${date} ${month} ${year}`
+}
+
+let firstRenderDate = true
 const showDateInputOptions = (index: number) => {
   const timeInputWarning = <option disabled ariaHidden>Harap pilih hari praktek terlebih dahulu</option>
   const placeholder = <option hidden disabled ariaHidden>Pilih hari praktek</option>
@@ -67,16 +84,10 @@ const showDateInputOptions = (index: number) => {
   dateInput.appendChild(placeholder)
 
   Object.keys(window.schedules[index]).forEach(unixSeconds => {
-    const _date = new Date(Number(unixSeconds) * 1000)
-    const date = _date.getDate()
-    const day = _date.toLocaleString('id-ID', { weekday: 'long' })
-    const month = _date.toLocaleString('id-ID', { month: 'long' })
-    const year = _date.getFullYear()
-
     dateInput.appendChild(
       <OptionElement
         value={unixSeconds}
-        formatedValue={`${day}, ${date} ${month} ${year}`}
+        formatedValue={getHumanReadableDate(unixSeconds)}
       />
     )
   })
@@ -85,8 +96,25 @@ const showDateInputOptions = (index: number) => {
   timeInput.appendChild(timeInputPlaceholder)
   timeInput.appendChild(timeInputWarning)
 
-  placeholder.selected = true
-  timeInputPlaceholder.selected = true
+  if ((doctorInput as HTMLInputElement).value === window.selected?.doctor) {
+    const { date } = window.selected
+    let dateOption = dateInput.querySelector(`option[value="${date}"]`) as HTMLOptionElement
+    if (!dateOption) {
+      dateOption = <OptionElement value={date} formatedValue={getHumanReadableDate(date)} disabled />
+      dateInput.appendChild(dateOption)
+    }
+    dateOption.innerText += ' - Tanggal yang sebelumnya dipilih'
+
+    if (firstRenderDate) {
+      firstRenderDate = false
+      dateInput.value = date
+    }
+  }
+  else {
+    placeholder.selected = true
+    timeInputPlaceholder.selected = true
+  }
+
 }
 
 if (doctorInput.tagName === 'SELECT') {
@@ -102,6 +130,7 @@ else {
   )
 }
 
+let firstRenderTime = true
 dateInput.onchange = event => {
   timeInput.innerHTML = ''
   timeInput.appendChild(timeInputPlaceholder)
@@ -109,14 +138,39 @@ dateInput.onchange = event => {
   const workingSchedule = window.schedules[Number(event.target['pointer']) || 0]
 
   let firstOption
-  workingSchedule[(event.target as HTMLSelectElement).value].forEach((hour: string) => {
+  workingSchedule[(event.target as HTMLSelectElement).value]?.forEach((hour: string) => {
     const option = <OptionElement value={hour} />
     if (!firstOption) firstOption = option
     timeInput.appendChild(option)
   })
 
-  if (workingSchedule[(event.target as HTMLSelectElement).value].length === 1)
-    firstOption.selected = true
-  else
-    timeInputPlaceholder.selected = true
+  if (
+    (doctorInput as HTMLInputElement).value === window.selected?.doctor &&
+    dateInput.value === window.selected.date
+  ) {
+    const { time } = window.selected
+    let timeOption = timeInput.querySelector(`option[value="${time}"]`) as HTMLOptionElement
+    if (!timeOption) {
+      timeOption = <OptionElement value={time} disabled />
+      timeInput.appendChild(timeOption)
+    }
+    timeOption.innerText += ' - Jam yang sebelumnya dipilih'
+
+    if (firstRenderTime) {
+      firstRenderTime = false
+      timeInput.value = time
+    }
+  }
+  else {
+    if (workingSchedule[(event.target as HTMLSelectElement).value].length === 1)
+      firstOption.selected = true
+    else
+      timeInputPlaceholder.selected = true
+  }
+}
+
+if (window.selected) {
+  if (doctorInput.tagName === 'SELECT')
+    doctorInput.dispatchEvent(new Event('change', { bubbles: true }))
+  dateInput.dispatchEvent(new Event('change', { bubbles: true }))
 }

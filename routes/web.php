@@ -27,11 +27,20 @@ Route::post('/daftar', [PatientRegistrationController::class, 'store'])->name('p
 Route::group(['prefix' => 'admin'], function () {
     Route::get('new-service', [ServiceController::class, 'create'])->name('admin@new-service');
     Route::get('patient-list', [PatientController::class, 'list'])->name('admin@patient-list');
-    Route::get('patient-reschedule', [PatientController::class, 'reschedule'])->name('admin@patient-reschedule');
-    Route::put('patient-reschedule', [PatientController::class, 'reschedule'])->name('admin@patient-reschedule:put');
+    Route::get(
+        'patient-reschedule/{patientAppointment}',
+        [PatientController::class, 'reschedule']
+    )->name('admin@patient-reschedule');
+    Route::put(
+        'patient-reschedule',
+        [PatientController::class, 'update']
+    )->name('admin@patient-reschedule:put');
 
     Route::get('doctor-list', [DoctorController::class, 'list'])->name('admin@doctor-list');
-    Route::delete('doctor-list/{doctorService}', [DoctorController::class, 'delete'])->name('admin@delete-service');
+    Route::delete(
+        'doctor-list/{doctorService}',
+        [DoctorController::class, 'delete']
+    )->name('admin@delete-service');
 });
 
 Auth::routes();
