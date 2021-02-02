@@ -17,7 +17,7 @@
           </tr>
         </thead>
         <tbody>
-          @foreach ($patients as $patient)
+          @forelse ($patients as $patient)
           @php
             $doctorWorktime = $patient['service_appointment']['doctor_worktime'];
             $doctor = $doctorWorktime['doctor_service'];
@@ -48,7 +48,11 @@
               </a>
             </td>
           </tr>
-          @endforeach
+          @empty
+          <tr>
+            <td class="py-3" colspan="6">Data pasien tidak dapat ditemukan</td>
+          </tr>
+          @endforelse
         </tbody>
       </table>
     </div>
