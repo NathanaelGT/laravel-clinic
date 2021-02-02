@@ -75,6 +75,13 @@ class PatientController extends Controller
             $slots = [];
             $doctorWorktimeId = 0;
             $patientId = $PatientAppointment['patient']['id'];
+
+            $oldServiceAppointment = $PatientAppointment['serviceAppointment'];
+            $oldSlots = $oldServiceAppointment['quota'];
+            $quotaIndex = array_search($patientId, $oldSlots);
+            $oldSlots[$quotaIndex] = 0;
+            $oldServiceAppointment = ServiceAppointment::find($oldServiceAppointment['id']);
+
             foreach ($service['doctorWorktime'] as $schedule) {
                 $patientAppointment = explode(' - ', $request->time);
                 if (sizeof($patientAppointment) !== 2)
@@ -94,25 +101,28 @@ class PatientController extends Controller
                     'doctor_worktime_id' => $doctorWorktimeId,
                     'date' => $date
                 ]);
-                if ($serviceAppointment->exists) $slots = $serviceAppointment['quota'];
+                if ($serviceAppointment->exists) {
+                    $slots = $serviceAppointment['id'] === $oldServiceAppointment['id']
+                        ? $oldSlots
+                        : $serviceAppointment['quota'];
+                }
 
                 $index = 0;
                 for ($time = $scheduleStart; $time < $scheduleEnd; $time += $quota) {
                     if ($time === $patientStart) {
-                        if (!isset($slots[$index]) || $slots[$index] === '0')
-                            $slots[$index] = $patientId;
+                        if (!isset($slots[$index]) || $slots[$index] === '0') $slots[$index] = $patientId;
                         else return Redirect::back()->withErrors(['Slot ini telah dipesan orang lain']);
                     }
                     elseif (!$serviceAppointment->exists) $slots[$index] = 0;
                     $index++;
                 }
-                // FIXME
-                $oldServiceAppointment = $PatientAppointment['serviceAppointment'];
-                $quota = $oldServiceAppointment['quota'];
-                $quotaIndex = array_search($patientId, $quota);
-                $quota[$quotaIndex] = '0';
-                ServiceAppointment::find($oldServiceAppointment['id'])->update($quota);
+                if ($serviceAppointment['id'] !== $oldServiceAppointment['id']) {
+                    $appointment = ServiceAppointment::find($oldServiceAppointment['id']);
+                    $isEmpty = empty(array_filter($oldSlots, fn ($value) => (bool) $value));
 
+                    if ($isEmpty) $appointment->delete();
+                    else $appointment->update(['quota' => $oldSlots]);
+                }
                 $serviceAppointment->quota = $slots;
                 $serviceAppointment->save();
 
@@ -123,15 +133,6 @@ class PatientController extends Controller
             }
         });
 
-        return redirect(route('home'))->with([
-            'message' => "
-                Janji temu berhasil dibuat<br/><br/>
-                Info:<br/>
-                Nama: $request->name<br/>
-                NIK: $request->nik<br/>
-                No. HP: {$request->input('phone-number')}<br/>
-                Alamat: $request->address
-            "
-        ]);
+        return redirect(route('admin@patient-list'));
     }
 }
