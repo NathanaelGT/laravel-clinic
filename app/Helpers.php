@@ -3,7 +3,6 @@
 namespace App;
 
 use App\Models\DoctorWorktime;
-use App\Models\Patient;
 use App\Models\Service;
 use Carbon\Carbon;
 
@@ -85,32 +84,35 @@ class Helpers
                 $scheduleDate = $tomorrow->copy()->addDays($scheduleDayIndex);
 
                 $schedule['day'] = $scheduleDate->isoFormat('X');
-                $sortedDay[$scheduleDayIndex] = $schedule;
+                if (isset($sortedDay[$scheduleDayIndex])) array_push($sortedDay[$scheduleDayIndex], $schedule);
+                else $sortedDay[$scheduleDayIndex] = [$schedule];
             }
             ksort($sortedDay);
 
-            foreach ($sortedDay as $schedule) {
-                $quota = $schedule['quota'];
-                $start = Helpers::timeToNumber($schedule['time_start']);
-                $end = Helpers::timeToNumber($schedule['time_end']);
+            foreach ($sortedDay as $scheduleDay) {
+                foreach ($scheduleDay as $schedule) {
+                    $quota = $schedule['quota'];
+                    $start = Helpers::timeToNumber($schedule['time_start']);
+                    $end = Helpers::timeToNumber($schedule['time_end']);
 
-                $i = 0;
-                $times = [];
-                for ($time = $start; $time < $end; $time += $quota) {
-                    if (
-                        isset($schedule['serviceAppointment'][0]) &&
-                        (int) $schedule['serviceAppointment'][0]['quota'][$i++] > 0
-                    ) continue;
-                    array_push($times, Helpers::numberToTimeFormat($time, $time + $quota));
+                    $i = 0;
+                    $times = [];
+                    for ($time = $start; $time < $end; $time += $quota) {
+                        if (
+                            isset($schedule['serviceAppointment'][0]) &&
+                            $schedule['serviceAppointment'][0]['quota'][$i++]
+                        ) continue;
+                        array_push($times, Helpers::numberToTimeFormat($time, $time + $quota));
+                    }
+
+                    $day = &$schedules[$index][$schedule['day']];
+
+                    if (sizeof($times)) {
+                        if (!isset($day)) $day = $times;
+                        else $day = array_merge($day, $times);
+                    }
+                    else unset($schedules[$index][$schedule['day']]);
                 }
-
-                $day = &$schedules[$index][$schedule['day']];
-
-                if (sizeof($times)) {
-                    if (!isset($day)) $day = $times;
-                    else array_merge($day, $times);
-                }
-                else unset($schedules[$index][$schedule['day']]);
             }
         }
 
