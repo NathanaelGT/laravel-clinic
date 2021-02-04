@@ -9,6 +9,7 @@ use App\Http\Controllers\PatientRegistrationController;
 use App\Http\Controllers\Admin\ServiceController;
 use App\Http\Controllers\Admin\PatientController;
 use App\Http\Controllers\Admin\DoctorController;
+use App\Http\Controllers\Auth\LoginController;
 
 /*
 |--------------------------------------------------------------------------
@@ -22,10 +23,11 @@ use App\Http\Controllers\Admin\DoctorController;
 */
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/home', [HomeController::class, 'index']);
 Route::get('/daftar', [PatientRegistrationController::class, 'index'])->name('patient-registration');
 Route::post('/daftar', [PatientRegistrationController::class, 'store'])->name('patient-registration:store');
 
-Route::group(['prefix' => 'admin'], function () {
+Route::group(['prefix' => 'admin', 'middleware' => 'auth'], function () {
     Route::get('new-service', [ServiceController::class, 'create'])->name('admin@new-service');
     Route::get('patient-list', [PatientController::class, 'list'])->name('admin@patient-list');
     Route::get(
@@ -56,3 +58,4 @@ Route::group(['prefix' => 'admin'], function () {
 });
 
 Auth::routes();
+Route::get('logout', [LoginController::class, 'logout']);
