@@ -3,12 +3,23 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Conflict;
 use App\Models\DoctorService;
+use App\Models\ServiceAppointment;
+use Carbon\Carbon;
 
 class DoctorController extends Controller
 {
     public function list()
     {
+        $conflicts = Conflict::with('serviceAppointment')->get();
+
+        foreach ($conflicts as $conflict) {
+            $conflictDate = Carbon::parse($conflict['serviceAppointment']['date']);
+            if ($conflictDate->addDay()->isPast()) $conflict->delete();
+        }
+        $hasConflict = ServiceAppointment::where('date', '>', Carbon::today())->has('conflict')->exists();
+
         $services = DoctorService::with('doctorWorktime', 'service')->get()->toArray();
 
         $ids = [];
@@ -24,7 +35,9 @@ class DoctorController extends Controller
                 $timeAndQuota = [
                     'id' => $item['id'],
                     'time' => $item['time_start'] . ' - ' . $item['time_end'],
-                    'quota' => $item['quota']
+                    'quota' => $item['quota'],
+                    'activeDate' => Carbon::parse($item['active_date']),
+                    'deletedAt' => $item['deleted_at']
                 ];
 
                 if (!isset($array)) $array = [$timeAndQuota];
@@ -36,7 +49,7 @@ class DoctorController extends Controller
             return $carry;
         }, []);
 
-        return view('admin.doctor-list', compact('data', 'ids'));
+        return view('admin.doctor-list', compact('data', 'ids', 'hasConflict'));
     }
 
     public function delete(DoctorService $doctorService)

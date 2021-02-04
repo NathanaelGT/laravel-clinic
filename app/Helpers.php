@@ -63,6 +63,7 @@ class Helpers
     public static function getSchedule(string $serviceName)
     {
         $tomorrow = Carbon::tomorrow();
+        $today = Carbon::createMidnightDate();
         Helpers::$serviceSchedule = Service::with([
             'doctorService.doctorWorktime.serviceAppointment' => function($query) use ($tomorrow) {
                 $query->where('date', '>=', $tomorrow);
@@ -80,6 +81,9 @@ class Helpers
 
             $sortedDay = [];
             foreach ($doctor->doctorWorktime as $schedule) {
+                $activeDate = Carbon::parse($schedule['active_date']);
+                if ($activeDate >= $today) continue; 
+
                 $scheduleDayIndex = array_search($schedule['day'], $days);
                 $scheduleDate = $tomorrow->copy()->addDays($scheduleDayIndex);
 

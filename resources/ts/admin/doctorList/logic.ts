@@ -1,6 +1,6 @@
 export const update = (
   url: string, element: HTMLElement, data: object = {}, sibling: HTMLElement | null = null,
-  callback: () => any | null = null, fail: () => any | null = null
+  callback: (res: any) => any | null = null, fail: () => any | null = null
 ) => {
   if (sibling) {
     sibling.classList.remove('text-danger')
@@ -57,7 +57,7 @@ export const update = (
     })
     .then(res => {
       if (ok) {
-        if (callback) callback()
+        if (callback) callback(res)
         if (element.dataset.id !== 'new') return
 
         element.dataset.id = res.newId
@@ -74,7 +74,7 @@ export const update = (
         element.title = message
         console.error(message)
 
-        if (res.includes('<!DOCTYPE html>') && confirm('Error terdeteksi, ingin menampilkan HTML?'))
+        if (res.toLowerCase().includes('<!doctype html>') && confirm('Error terdeteksi, ingin menampilkan HTML?'))
           document.querySelector('html').innerHTML = res
         else console.error(res)
       }
@@ -113,7 +113,16 @@ export const fetching = {
       data['day'] = (grandParent.previousElementSibling as HTMLElement).innerText.split(':')[0]
     }
 
-    update('service', element, data, sibling)
+    update('service', element, data, sibling, ({ status, message }) => {
+      if (status !== 'warning') return
+
+      element.style.color = '#FF9000'
+      element.title = message
+
+      const conflictButton = document.querySelector('a#conflict-button') as HTMLButtonElement
+      conflictButton.classList.remove('d-none')
+      conflictButton.focus()
+    })
   },
   close(element: HTMLElement) {
     update('close', element)

@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
+use App\SoftDeletesCompare as SoftDeletes;
 
 /**
  * App\Models\DoctorWorktime
@@ -15,7 +15,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string $day
  * @property string $time_start
  * @property string $time_end
+ * @property string $active_date
  * @property \Illuminate\Support\Carbon|null $deleted_at
+ * @property-read \App\Models\Conflict|null $conflict
  * @property-read \App\Models\DoctorService|null $doctorService
  * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\ServiceAppointment[] $serviceAppointment
  * @property-read int|null $service_appointment_count
@@ -23,6 +25,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @method static \Illuminate\Database\Eloquent\Builder|DoctorWorktime newQuery()
  * @method static \Illuminate\Database\Query\Builder|DoctorWorktime onlyTrashed()
  * @method static \Illuminate\Database\Eloquent\Builder|DoctorWorktime query()
+ * @method static \Illuminate\Database\Eloquent\Builder|DoctorWorktime whereActiveDate($value)
  * @method static \Illuminate\Database\Eloquent\Builder|DoctorWorktime whereDay($value)
  * @method static \Illuminate\Database\Eloquent\Builder|DoctorWorktime whereDeletedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|DoctorWorktime whereDoctorServiceId($value)
@@ -39,7 +42,7 @@ class DoctorWorktime extends Model
     use HasFactory;
     use SoftDeletes;
 
-    public $fillable = ['doctor_service_id', 'quota', 'day', 'time_start', 'time_end'];
+    public $fillable = ['doctor_service_id', 'quota', 'day', 'time_start', 'time_end', 'active_date', 'deleted_at'];
     public $timestamps = false;
 
     public function doctorService()
@@ -50,5 +53,10 @@ class DoctorWorktime extends Model
     public function serviceAppointment()
     {
         return $this->hasMany(ServiceAppointment::class);
+    }
+
+    public function conflict()
+    {
+        return $this->hasOne(Conflict::class);
     }
 }

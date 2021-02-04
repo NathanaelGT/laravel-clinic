@@ -5,7 +5,21 @@
 @endphp
 
 <x-app>
-  <div class="table-responsive my-xl-5 m-lg-4 m-md-3 m-2 d-flex justify-content-center">
+  <div class="mx-xl-2 mx-lg-4 mx-md-3 mx-2 mb-3 mt-5 d-flex justify-content-between">
+    <h3>Tabel daftar dokter</h3>
+    <div>
+      <a class="btn btn-primary" href="{{ route('admin@new-service') }}">Tambahkan layanan baru</a>
+      <a
+        id="conflict-button"
+        class="btn btn-primary @if (!$hasConflict) d-none @endif"
+        href="{{ route('admin@conflict') }}"
+      >
+        Lihat jadwal layanan yang "bermasalah"
+      </a>
+    </div>
+  </div>
+
+  <div class="table-responsive mx-xl-2 mx-lg-4 mx-md-3 m-2 d-flex justify-content-center">
     <table class="table table-bordered table-doctor-list">
       <thead>
         <tr class="text-center">
@@ -31,19 +45,37 @@
                 <div class="schedule d-flex">
                   <span class="day @if ($today === $day) bold @endif">{{ $day }}:</span>
                   <span>
+                    {{-- @if ($schedule['activeDate']->isFuture()) text-muted @endif --}}
                     @foreach ($schedules[$day] ?? ['Tutup'] as $schedule)
+                    @if ($schedule === 'Tutup')
                     <span class="one-line">
-                      @if ($schedule === 'Tutup')
                       <span>{{ $schedule }}</span>
-                      @else
+                    </span>
+                    @else
+                    <span
+                    title="
+                      @if ($schedule['activeDate']->isFuture())
+                        Jadwal ini akan berlaku mulai {{ $schedule['activeDate']->isoFormat('dddd, DD MMMM YYYY') }}
+                      @elseif (!is_null($schedule['deletedAt']))
+                        Jadwal ini akan terhapus pada {{ \Carbon\Carbon::parse($schedule['deletedAt'])->isoFormat('dddd, DD MMMM YYYY') }}
+                      @endif
+                      "
+                      class="one-line
+                        @if ($schedule['activeDate']->isFuture())
+                          text-decoration-underline
+                        @elseif (!is_null($schedule['deletedAt']))
+                          text-decoration-line-through grey
+                        @endif
+                      "
+                    >
                       <span
-                        class="editable"
+                        class="@if (is_null($schedule['deletedAt'])) editable @endif"
                         data-type="time"
                         data-id="{{ $schedule['id'] }}"
                       >{{ $schedule['time'] }}</span>
                       (per
                       <span
-                        class="editable"
+                        class="@if (is_null($schedule['deletedAt'])) editable @endif"
                         data-type="per"
                         data-id="{{ $schedule['id'] }}"
                       >{{ $schedule['quota'] }} menit</span>){{  !$loop->last ? ', ' : ''  }}

@@ -5,8 +5,11 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\UpdateDoctorNameRequest;
 use App\Http\Requests\Api\UpdateServiceRequest;
+use App\Models\Conflict;
 use App\Models\DoctorService;
 use App\Models\DoctorWorktime;
+use App\Models\ServiceAppointment;
+use Carbon\Carbon;
 
 class ApiController extends Controller
 {
@@ -29,13 +32,32 @@ class ApiController extends Controller
             ]);
             return response()->json(['status' => 'success', 'newId' => $newId]);
         }
+        $worktime = DoctorWorktime::findOrFail($id);
+        $appointmentId = ServiceAppointment::whereDoctorWorktimeId($worktime['id'])
+            ->where('date', '>', Carbon::today())->first()?->id;
 
-        DoctorWorktime::findOrFail($id)->update([
+        if (!$appointmentId) {
+            $worktime->update([
+                'quota' => $request->quota,
+                'time_start' => $request->timeStart,
+                'time_end' => $request->timeEnd
+            ]);
+            return response()->json(['status' => 'success']);
+        }
+
+        Conflict::updateOrCreate([
+            'service_appointment_id' => $appointmentId,
+            'doctor_worktime_id' => $worktime['id'],
+        ], [
             'quota' => $request->quota,
             'time_start' => $request->timeStart,
             'time_end' => $request->timeEnd
         ]);
-        return response()->json(['status' => 'success']);
+
+        return response()->json([
+            'status' => 'warning',
+            'message' => 'Sudah ada pasien yang mendaftar pada jadwal ini'
+        ]);
     }
 
     public function close(DoctorWorktime $doctorWorktime)

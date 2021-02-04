@@ -6,7 +6,6 @@ use App\Helpers;
 use App\Models\DoctorService;
 use App\Models\Patient;
 use App\Models\PatientAppointment;
-use App\Models\Service;
 use App\Models\ServiceAppointment;
 use Carbon\Carbon;
 use Illuminate\Http\Request;

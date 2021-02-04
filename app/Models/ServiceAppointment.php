@@ -12,6 +12,10 @@ use Illuminate\Database\Eloquent\Model;
  * @property int|null $doctor_worktime_id
  * @property string $date
  * @property string $quota
+ * @property-read \App\Models\Conflict|null $conflict
+ * @property-read \App\Models\DoctorWorktime|null $doctorWorktime
+ * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\PatientAppointment[] $patientAppointment
+ * @property-read int|null $patient_appointment_count
  * @method static \Illuminate\Database\Eloquent\Builder|ServiceAppointment newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|ServiceAppointment newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|ServiceAppointment query()
@@ -45,5 +49,10 @@ class ServiceAppointment extends Model
     public function doctorWorktime()
     {
         return $this->belongsTo(DoctorWorktime::class);
+    }
+
+    public function conflict()
+    {
+        return $this->hasOne(Conflict::class);
     }
 }

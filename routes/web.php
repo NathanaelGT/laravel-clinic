@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\ConflictController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -41,6 +42,17 @@ Route::group(['prefix' => 'admin'], function () {
         'doctor-list/{doctorService}',
         [DoctorController::class, 'delete']
     )->name('admin@delete-service');
+
+    Route::get('conflict', [ConflictController::class, 'list'])->name('admin@conflict');
+    Route::get('conflict/cancel/{conflict}', [ConflictController::class, 'destroy'])->name('admin@conflict-cancel');
+    Route::get(
+        'conflict/close/{serviceAppointment}',
+        [ConflictController::class, 'closeRegistration']
+    )->name('admin@conflict-close');
+    Route::get(
+        'conflict/nextweek/{conflict}',
+        [ConflictController::class, 'nextWeek']
+    )->name('admin@conflict-nextweek');
 });
 
 Auth::routes();
