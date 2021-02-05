@@ -22,7 +22,7 @@ interface Props {
 export default ({
   name, leftPlaceholder, leftOninput, leftValue, separator, middlePlaceholder, middleOninput,
   middleValue, rightPlaceholder, rightOninput, rightValue, options, errorMessage = null
-}): Props => (
+}: Props) => (
   <div>
     <label htmlFor={name}>{leftPlaceholder}</label>
     <div className="input-group">
@@ -47,6 +47,7 @@ export default ({
         onkeypress={validateNumber}
         oninput={middleOninput}
         value={middleValue}
+        disabled={rightValue === 'Sesi'}
       />
       <select className="form-select" oninput={rightOninput}>
         <option

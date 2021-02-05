@@ -15,9 +15,24 @@ interface Props {
   dayValue: string[][]
 }
 
+let per: string | null = ''
 export default (data: Props) => {
   const { handleSubmit, errorMessages, currentIndex, getButtonsData } = data
   const updateQuotaValue = (field: 'number' | 'time' | 'per') => (event: Event) => {
+    const perInput = (event.target as HTMLElement).previousElementSibling as HTMLInputElement
+    if (field === 'per') {
+      if ((event.target as HTMLSelectElement).value === 'Sesi') {
+        per = perInput.value
+        perInput.disabled = true
+        perInput.value = '1'
+      }
+      else if (per !== null) {
+        perInput.value = per
+        perInput.disabled = false
+        per = null
+      }
+      data.quotaValue[currentIndex].time = perInput.value
+    }
     data.quotaValue[currentIndex][field] = (event.target as any).value
   }
 

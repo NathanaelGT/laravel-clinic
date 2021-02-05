@@ -39,9 +39,12 @@ const calculateQuota = (getSessionTime: boolean) => (
 const searchValid = (index: number) => {
   const timeError: string[] = []
   for (let i = 0; i < 2; i++) {
-    if (!data.timeInputValue[index]?.[i])
-      timeError[i] = 'Harap tentukan waktu praktek'
+    if (!data.timeInputValue[index]?.[i]) timeError[i] = 'Harap tentukan waktu praktek'
   }
+  const [start, end] = data.timeInputValue[index].map(timeToNumber)
+  if (start > end) timeError[0] = 'Waktu mulai lebih besar dari waktu selesai'
+  else if (start === end) timeError[0] = 'Waktu mulai tidak bisa sama dengan waktu selesai'
+
   const dayInvalid = data.dayValue[index]?.filter(value => value !== '')?.length === 0
 
   let quotaErrorMessage: string
@@ -49,6 +52,9 @@ const searchValid = (index: number) => {
   if (!quota.number) quotaErrorMessage = 'Harap tentukan kuota'
   else if (!quota.time) quotaErrorMessage = 'Harap tentukan waktu kuota'
   else if (!quota.per) quotaErrorMessage = 'Harap tentukan pembagian waktu kuota'
+  else if (quota.per === 'Sesi' && Number(quota.time) !== 1) {
+    quotaErrorMessage = 'Tidak bisa mengatur waktu lebih dari 1 sesi'
+  }
   else {
     const [calculatedQuota, time] = calculateQuota(true)(quota, index) as number[]
     if (calculatedQuota < 1) quotaErrorMessage = 'Waktu kuota terlalu sedikit'
@@ -62,7 +68,7 @@ const searchValid = (index: number) => {
     doctor: data.doctorName === '' ? 'Harap isi nama dokter' : '',
     service: data.serviceName === '' ? 'Harap isi nama layanan' : '',
     time: timeError.length ? timeError : ['', ''],
-    quota: quotaErrorMessage ? quotaErrorMessage : '',
+    quota: quotaErrorMessage || '',
     day: dayInvalid ? 'Harap pilih hari praktek' : ''
   }
 
@@ -221,8 +227,6 @@ const data = {
   }
 }
 setInitialValue(0)
-
-window['data'] = data
 
 container.render(Form(data))
 
