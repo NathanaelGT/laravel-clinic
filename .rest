@@ -7,12 +7,11 @@ Content-Type: application/json
 
 ###
 
-POST http://127.0.0.1:8000/api/service
+POST http://127.0.0.1:8000/api/service/37
 Content-Type: application/json
 
 {
-  "serviceName": "Gigi",
-  "doctorName": "Budi",
-  "quota": [-20],
-  "day": [["Selasa"]]
+  "quota": 20,
+  "timeEnd": "16:00",
+  "timeStart": "14:00"
 }

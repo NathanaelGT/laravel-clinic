@@ -4,8 +4,11 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cookie;
+use Illuminate\Support\Str;
 
 class LoginController extends Controller
 {
@@ -57,7 +60,11 @@ class LoginController extends Controller
             $user = Auth::getLastAttempted();
 
             if ($user->is_valid && $this->attemptLogin($request)) {
-                return $this->sendLoginResponse($request);
+                $user->token = $user->email . '-' . (string) Str::uuid();
+                $user->save();
+                $cookie = Cookie::forever('token', $user->token);
+
+                return $this->sendLoginResponse($request)->withCookie($cookie);
             }
             else {
                 $this->incrementLoginAttempts($request);
@@ -78,5 +85,18 @@ class LoginController extends Controller
         $this->incrementLoginAttempts($request);
 
         return $this->sendFailedLoginResponse($request);
+    }
+
+    public function logout(Request $request)
+    {
+        $this->guard()->logout();
+
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+        $cookie = Cookie::forget('token');
+
+        return $request->wantsJson()
+            ? new JsonResponse([], 204)
+            : redirect('/')->withCookie($cookie);
     }
 }

@@ -1,6 +1,5 @@
 <?php
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\Api\ApiController;
@@ -17,12 +16,9 @@ use App\Http\Controllers\Api\ServiceController;
 |
 */
 
-Route::middleware('auth:api')->get('/user', function (Request $request) {
-    return $request->user();
+Route::group(['middleware' => 'api.token'], function() {
+    Route::post('/service', [ServiceController::class, 'store']);
+    Route::post('/doctor/{doctorService}', [ApiController::class, 'doctor']);
+    Route::post('/service/{id}', [ApiController::class, 'service']);
+    Route::post('/close/{doctorWorktime}', [ApiController::class, 'close']);
 });
-
-Route::post('/service', [ServiceController::class, 'store']);
-
-Route::post('/doctor/{doctorService}', [ApiController::class, 'doctor']);
-Route::post('/service/{id}', [ApiController::class, 'service']);
-Route::post('/close/{doctorWorktime}', [ApiController::class, 'close']);
