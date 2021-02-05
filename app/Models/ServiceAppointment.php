@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property int $id
  * @property int|null $doctor_worktime_id
  * @property string $date
- * @property string $quota
+ * @property array $quota
  * @property-read \App\Models\Conflict|null $conflict
  * @property-read \App\Models\DoctorWorktime|null $doctorWorktime
  * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\PatientAppointment[] $patientAppointment

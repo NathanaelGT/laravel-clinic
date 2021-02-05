@@ -15,7 +15,6 @@ mix.sass('resources/scss/app.scss', 'public/css')
    .js('resources/ts/jsx-render.ts', 'public/js')
    .js('resources/ts/home.tsx', 'public/js')
    .js('resources/ts/patientAppointment.tsx', 'public/js')
-   .js('resources/ts/app.ts', 'public/js')
    .js('resources/ts/admin/newService.ts', 'public/js/admin')
    .js('resources/ts/admin/doctorList.tsx', 'public/js/admin')
    .sourceMaps(false, 'source-map')
@@ -34,3 +33,5 @@ mix.sass('resources/scss/app.scss', 'public/css')
          ]
       }
    })
+
+if (mix.inProduction()) mix.version()

@@ -27,7 +27,6 @@
     crossorigin="anonymous"
   ></script>
   <script src="{{ mix('js/jsx-render.js') }}"></script>
-  <script src="{{ mix('js/app.js') }}"></script>
   {{ $script ?? '' }}
 </body>
 </html>

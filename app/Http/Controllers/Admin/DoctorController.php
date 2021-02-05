@@ -15,7 +15,7 @@ class DoctorController extends Controller
         $conflicts = Conflict::with('serviceAppointment')->get();
 
         foreach ($conflicts as $conflict) {
-            $conflictDate = Carbon::parse($conflict['serviceAppointment']['date']);
+            $conflictDate = Carbon::parse($conflict->serviceAppointment->date);
             if ($conflictDate->addDay()->isPast()) $conflict->delete();
         }
         $hasConflict = ServiceAppointment::where('date', '>', Carbon::today())->has('conflict')->exists();

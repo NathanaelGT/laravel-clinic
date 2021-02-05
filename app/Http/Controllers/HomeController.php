@@ -3,8 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\DoctorService;
-use App\Models\DoctorWorktime;
-use App\Models\Service;
 
 class HomeController extends Controller
 {

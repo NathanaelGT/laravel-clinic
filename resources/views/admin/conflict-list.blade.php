@@ -1,5 +1,9 @@
 <x-app>
-  <div class="table-responsive my-xl-5 m-lg-4 m-md-3 m-2 d-flex justify-content-center">
+  <div class="mx-xl-2 mx-lg-4 mx-md-3 mx-2 mb-3 mt-5 d-flex justify-content-between">
+    <h3>Tabel daftar jadwal yang bermasalah</h3>
+  </div>
+
+  <div class="table-responsive mx-xl-2 mx-lg-4 mx-md-3 m-2 d-flex justify-content-center">
     <table class="table table-bordered">
       <thead class="text-center align-middle">
         <tr>
@@ -22,40 +26,40 @@
       </thead>
       <tbody class="text-center align-middle">
         @forelse ($conflicts as $index => $conflict)
-        @foreach ($conflict['serviceAppointment']['patientAppointment'] as $patientAppointment)
+        @foreach ($conflict->serviceAppointment->patientAppointment as $patientAppointment)
         @if ($loop->first)
         <tr>
           <td rowspan="{{ $loop->count }}">
-            {{ \Carbon\Carbon::parse($conflict['serviceAppointment']['date'])->isoFormat('dddd, D MMMM YYYY') }}
+            {{ \Carbon\Carbon::parse($conflict->serviceAppointment->date)->isoFormat('dddd, D MMMM YYYY') }}
           </td>
 
           <td rowspan="{{ $loop->count }}">
-            {{ $conflict['doctorWorktime']['doctorService']['doctor_name'] }}
+            {{ $conflict->doctorWorktime->doctorService->doctor_name }}
           </td>
 
           <td rowspan="{{ $loop->count }}">
-            {{ "{$conflict['doctorWorktime']['time_start']} - {$conflict['doctorWorktime']['time_end']}" }}
+            {{ "{$conflict->doctorWorktime->time_start} - {$conflict->doctorWorktime->time_end}" }}
           </td rowspan="{{ $loop->count }}">
 
           <td rowspan="{{ $loop->count }}">
-            {{ $conflict['doctorWorktime']['quota'] }}
+            {{ $conflict->doctorWorktime->quota }}
           </td>
 
           <td rowspan="{{ $loop->count }}">
-            {{ $conflict['time_start'] . ' - ' . $conflict['time_end'] }}
+            {{ $conflict->time_start . ' - ' . $conflict->time_end }}
           </td rowspan="{{ $loop->count }}">
 
           <td rowspan="{{ $loop->count }}">
-            {{ $conflict['quota'] }}
+            {{ $conflict->quota }}
           </td>
 
           <td>
-            {{ $patientAppointment['patient']['name'] }}
+            {{ $patientAppointment->patient->name }}
           </td>
 
           <td>
             <a
-              href="{{ route('admin@patient-reschedule', ['patientAppointment' => $patientAppointment['id']]) }}"
+              href="{{ route('admin@patient-reschedule', ['patientAppointment' => $patientAppointment->id]) }}"
               class="btn btn-warning text-white"
             >
               Ubah
@@ -64,23 +68,23 @@
 
           <td rowspan="{{ $loop->count }}">
             <a
-              href="{{ route('admin@conflict-cancel', ['conflict' => $conflict['id']]) }}"
+              href="{{ route('admin@conflict-cancel', ['conflict' => $conflict->id]) }}"
               class="btn btn-danger"
             >
               Batalkan perubahan
             </a>
             <a
-              href="{{ route('admin@conflict-nextweek', ['conflict' => $conflict['id']]) }}"
+              href="{{ route('admin@conflict-nextweek', ['conflict' => $conflict->id]) }}"
               class="btn btn-primary my-2"
             >
               Berlakukan mulai minggu selanjutnya
             </a>
             @php
               $url = '';
-              if (!in_array('-1', $conflict['serviceAppointment']['quota'])) {
+              if (!in_array(-1, $conflict->serviceAppointment->quota)) {
                 $url = route(
                   'admin@conflict-close',
-                  ['serviceAppointment' => $conflict['serviceAppointment']['id']]
+                  ['serviceAppointment' => $conflict->serviceAppointment->id]
                 );
               }
             @endphp
@@ -97,10 +101,10 @@
         </tr>
         @else
         <tr>
-          <td>{{ $patientAppointment['patient']['name'] }}</td>
+          <td>{{ $patientAppointment->patient->name }}</td>
           <td>
             <a
-              href="{{ route('admin@patient-reschedule', ['patientAppointment' => $patientAppointment['id']]) }}"
+              href="{{ route('admin@patient-reschedule', ['patientAppointment' => $patientAppointment->id]) }}"
               class="btn btn-warning text-white"
             >
               Ubah

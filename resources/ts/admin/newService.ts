@@ -179,6 +179,7 @@ const data = {
 
     const { serviceName, doctorName, timeInputValue, quotaValue, dayValue } = data
 
+    let ok: boolean
     if (isValid) {
       fetch(window.location.origin + '/api/service', {
         method: 'POST',
@@ -190,9 +191,21 @@ const data = {
           quota: quotaValue.map(calculateQuota(false)),
           day: dayValue
         })
-      }).then(res => res.json())
+      })
         .then(res => {
-          window.location.href = res.redirect
+          ok = res.ok
+          return res.text()
+        })
+        .then(res => {
+          try { return JSON.parse(res) }
+          catch { return res }
+        })
+        .then(res => {
+          if (ok) window.location.href = res.redirect
+          else {
+            alert(res)
+            console.error(res)
+          }
         })
         .catch(err => {
           alert(err)

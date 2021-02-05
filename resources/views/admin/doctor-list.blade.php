@@ -31,7 +31,7 @@
         </tr>
       </thead>
       <tbody>
-        @foreach ($data as $service => $doctors)
+        @forelse ($data as $service => $doctors)
         @foreach ($doctors as $doctor => $schedules)
         <tr>
           @if ($loop->first)
@@ -46,7 +46,6 @@
                 <div class="schedule d-flex">
                   <span class="day @if ($today === $day) bold @endif">{{ $day }}:</span>
                   <span>
-                    {{-- @if ($schedule['activeDate']->isFuture()) text-muted @endif --}}
                     @foreach ($schedules[$day] ?? ['Tutup'] as $schedule)
                     @if ($schedule === 'Tutup')
                     <span class="one-line">
@@ -103,7 +102,11 @@
           </td>
         </tr>
         @endforeach
-        @endforeach
+        @empty
+        <tr>
+          <td class="py-3" colspan="4">Tidak dapat menemukan data</td>
+        </tr>
+        @endforelse
       </tbody>
     </table>
   </div>

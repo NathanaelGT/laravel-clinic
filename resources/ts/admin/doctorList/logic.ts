@@ -99,7 +99,6 @@ export const fetching = {
         (element as HTMLElement).innerText.split(index === 0 ? ' - ' : ' ')
       ))
     )
-    console.log(rawQuota)
 
     // @ts-ignore
     const quota = calculateQuota(...rawQuota, rawTime)[1]

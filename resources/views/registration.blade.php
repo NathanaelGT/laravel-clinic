@@ -81,10 +81,10 @@
 
   <x-slot name="script">
     <script>
-      window.schedules = {!! json_encode($schedules) !!}
-      @if (isset($seleted))
-      window.selected = {!! json_encode($seleted) !!}
-      @endif
+      window.schedules = @json($schedules)
+      @isset($seleted)
+      window.selected = @json($seleted)
+      @endisset
     </script>
     <script src="{{ mix('js/patientAppointment.js') }}"></script>
   </x-slot>

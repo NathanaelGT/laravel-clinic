@@ -33,8 +33,10 @@ class ApiController extends Controller
             return response()->json(['status' => 'success', 'newId' => $newId]);
         }
         $worktime = DoctorWorktime::findOrFail($id);
-        $appointmentId = ServiceAppointment::whereDoctorWorktimeId($worktime['id'])
-            ->where('date', '>', Carbon::today())->first()?->id;
+        $appointmentId = ServiceAppointment::whereDoctorWorktimeId($worktime->id)
+            ->where('date', '>', Carbon::today())
+            ->first()
+            ?->id;
 
         if (!$appointmentId) {
             $worktime->update([
@@ -47,7 +49,7 @@ class ApiController extends Controller
 
         Conflict::updateOrCreate([
             'service_appointment_id' => $appointmentId,
-            'doctor_worktime_id' => $worktime['id'],
+            'doctor_worktime_id' => $worktime->id,
         ], [
             'quota' => $request->quota,
             'time_start' => $request->timeStart,

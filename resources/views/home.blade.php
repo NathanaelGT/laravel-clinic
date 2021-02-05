@@ -19,11 +19,15 @@
       <h4 class="ps-3">Layanan yang tersedia:</h4>
 
       <div class="row">
-        @foreach ($data as $service => $doctors)
+        @forelse ($data as $service => $doctors)
         <div class="col-xl-4 offset-xl-0 col-md-10 offset-md-1">
           <x-service :service="$service" :doctors="$doctors" />
         </div>
-        @endforeach
+        @empty
+        <div class="mt-5 text-center">
+          Belum ada layanan yang terdaftar
+        </div>
+        @endforelse
       </div>
     </div>
 

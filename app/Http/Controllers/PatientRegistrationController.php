@@ -35,26 +35,26 @@ class PatientRegistrationController extends Controller
 
         $slots = [];
         $doctorWorktimeId = 0;
-        foreach ($service['doctorWorktime'] as $schedule) {
+        foreach ($service->doctorWorktime as $schedule) {
             $patientAppointment = explode(' - ', $request->time);
             if (sizeof($patientAppointment) !== 2)
                 return Redirect::back()->with(['error', 'Waktu tidak valid']);
 
-            $quota = $schedule['quota'];
+            $quota = $schedule->quota;
             $patientStart = Helpers::timeToNumber($patientAppointment[0]);
             $patientEnd = Helpers::timeToNumber($patientAppointment[1]);
             if ($patientEnd - $patientStart !== (int) $quota) continue;
 
-            $scheduleStart = Helpers::timeToNumber($schedule['time_start']);
-            $scheduleEnd = Helpers::timeToNumber($schedule['time_end']);
+            $scheduleStart = Helpers::timeToNumber($schedule->time_start);
+            $scheduleEnd = Helpers::timeToNumber($schedule->time_end);
 
-            $doctorWorktimeId = $schedule['id'];
+            $doctorWorktimeId = $schedule->id;
 
             $serviceAppointment = ServiceAppointment::firstOrNew([
                 'doctor_worktime_id' => $doctorWorktimeId,
                 'date' => $date
             ]);
-            if ($serviceAppointment->exists) $slots = $serviceAppointment['quota'];
+            if ($serviceAppointment->exists) $slots = $serviceAppointment->quota;
 
             $index = 0;
             $patientId = 0;
@@ -68,8 +68,7 @@ class PatientRegistrationController extends Controller
                         'address' => $request->address,
                     ])->id;
 
-                    if (!isset($slots[$index]) || $slots[$index] === '0')
-                        $slots[$index] = $patientId;
+                    if (!isset($slots[$index]) || $slots[$index] === '0') $slots[$index] = $patientId;
                     else return Redirect::back()->withErrors(['Slot ini telah dipesan orang lain']);
                 }
                 elseif (!$serviceAppointment->exists) $slots[$index] = 0;
@@ -80,7 +79,7 @@ class PatientRegistrationController extends Controller
 
             PatientAppointment::create([
                 'patient_id' => $patientId,
-                'service_appointment_id' => $serviceAppointment['id'],
+                'service_appointment_id' => $serviceAppointment->id,
                 'status' => 'Menunggu'
             ]);
 

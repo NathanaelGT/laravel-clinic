@@ -24,7 +24,7 @@ class ConflictController extends Controller
 
     public function closeRegistration(ServiceAppointment $serviceAppointment)
     {
-        $newQuota = array_map(fn ($value) => $value ?: '-1', $serviceAppointment['quota']);
+        $newQuota = array_map(fn ($value) => $value ?: -1, $serviceAppointment->quota);
         $serviceAppointment->quota = $newQuota;
         $serviceAppointment->save();
 
@@ -34,12 +34,12 @@ class ConflictController extends Controller
     public function nextWeek(Conflict $conflict)
     {
         \DB::transaction(function() use ($conflict) {
-            $serviceAppointment = $conflict['serviceAppointment'];
-            $nextWeek = Carbon::parse($serviceAppointment['date'])->addWeek();
+            $serviceAppointment = $conflict->serviceAppointment;
+            $nextWeek = Carbon::parse($serviceAppointment->date)->addWeek();
 
             $serviceAppointment->quota = array_map(
-                fn ($value) => $value === '-1' ? 0 : $value,
-                $serviceAppointment['quota']
+                fn ($value) => $value === -1 ? 0 : $value,
+                $serviceAppointment->quota
             );
             $serviceAppointment->save();
 
@@ -47,10 +47,10 @@ class ConflictController extends Controller
             $conflict->doctorWorktime->save();
 
             DoctorWorktime::create([
-                'doctor_service_id' => $conflict['doctorWorktime']['doctor_service_id'],
-                'quota' => $conflict['quota'],
-                'time_start' => $conflict['time_start'],
-                'time_end' => $conflict['time_end'],
+                'doctor_service_id' => $conflict->doctorWorktime->doctor_service_id,
+                'quota' => $conflict->quota,
+                'time_start' => $conflict->time_start,
+                'time_end' => $conflict->time_end,
                 'active_date' => $nextWeek
             ]);
 
