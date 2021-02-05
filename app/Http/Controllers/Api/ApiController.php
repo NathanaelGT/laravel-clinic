@@ -23,7 +23,7 @@ class ApiController extends Controller
     public function service(UpdateServiceRequest $request, $id)
     {
         if ($id === 'new') {
-            $newId = DoctorWorktime::insertGetId([
+            $newId = 100;DoctorWorktime::insertGetId([
                 'doctor_service_id' => $request->doctorServiceId,
                 'day' => $request->day,
                 'quota' => $request->quota,

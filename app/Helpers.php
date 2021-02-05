@@ -33,6 +33,26 @@ class Helpers
         return Helpers::numberToTime($start) . ' - ' . Helpers::numberToTime($end);
     }
 
+    public static function timeFormatToNumber(string $time)
+    {
+        [$start, $end] = explode('-', $time);
+
+        return Helpers::timeToNumber($end) - Helpers::timeToNumber($start);
+    }
+
+    public static function formatSlotTime(int $slot, string $time)
+    {
+        $time = Helpers::timeFormatToNumber($time);
+        if ($slot === $time) return '1 sesi';
+
+        $minutes = $slot % 60;
+        if ($minutes) return "$minutes menit";
+
+        $hours = $slot / 60;
+        return "$hours jam";
+    }
+
+
     public static function workTime(DoctorWorktime $doctorWorktime)
     {
         $timeStart = Helpers::timeToNumber($doctorWorktime['time_start']);
@@ -58,6 +78,7 @@ class Helpers
 
         return [$timeStart, $timeEnd];
     }
+
 
     public static $serviceSchedule = null;
     public static function getSchedule(string $serviceName)

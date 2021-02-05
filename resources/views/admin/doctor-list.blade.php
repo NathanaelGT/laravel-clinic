@@ -1,5 +1,6 @@
 @php
   use Illuminate\Support\Str;
+  use App\Helpers;
 
   $today = \Carbon\Carbon::now()->dayName;
 @endphp
@@ -78,7 +79,7 @@
                         class="@if (is_null($schedule['deletedAt'])) editable @endif"
                         data-type="per"
                         data-id="{{ $schedule['id'] }}"
-                      >{{ $schedule['quota'] }} menit</span>){{  !$loop->last ? ', ' : ''  }}
+                      >{{ Helpers::formatSlotTime($schedule['quota'], $schedule['time']) }}</span>){{ !$loop->last ? ', ' : '' }}
                       @endif
                     </span>
                     @endforeach

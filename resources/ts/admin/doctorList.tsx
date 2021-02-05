@@ -25,9 +25,12 @@ const applyLiveEdit = (element: HTMLElement) => {
   }
 
   element.onblur = event => {
-    const newText = (event.target as HTMLElement).innerText.trim()
+    let newText = (event.target as HTMLElement).innerText.trim()
 
-    if (element.dataset.type !== 'name' && (newText === '' || newText.toLowerCase() === 'tutup')) {
+    if (element.dataset.type === 'name') {
+      if (newText === '') return element.innerText = text
+    }
+    else if (newText === '' || newText.toLowerCase() === 'tutup') {
       const parent = element.parentElement
       const grandParent = parent.parentElement
       const day = (grandParent.previousElementSibling as HTMLElement).innerText.slice(0, -1)
@@ -73,7 +76,10 @@ const applyLiveEdit = (element: HTMLElement) => {
       element.title = validation
       return element.classList.add('text-danger')
     }
-    else element.title = ''
+    else {
+      newText = element.innerText.trim() //ada kemungkinan validasinya ngubah textnya
+      element.title = ''
+    }
     element.classList.remove('text-danger')
 
     if (newText === text) return

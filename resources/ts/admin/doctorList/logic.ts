@@ -99,6 +99,7 @@ export const fetching = {
         (element as HTMLElement).innerText.split(index === 0 ? ' - ' : ' ')
       ))
     )
+    console.log(rawQuota)
 
     // @ts-ignore
     const quota = calculateQuota(...rawQuota, rawTime)[1]
@@ -138,9 +139,12 @@ const checkQuotaAndReturnErrorIfInvalid = (quota: string, per: string, times: st
   }
 }
 
-const template = (time: string, extra: string = '') => (
-  `harap masukkan ${time} yang valid` + extra ? `. (${extra})` : ''
-)
+const template = (time: string, extra: string = '') => {
+  let message = `harap masukkan ${time} yang valid`
+  if (extra) message += `. (${extra})`
+
+  return message
+}
 
 const validateTime = (variable: number, max: number, name: string) => {
   if (isNaN(variable)) return template(name)
@@ -159,8 +163,6 @@ export const validate = {
     if (times.length !== 2) return 'harap masukkan waktu selesai praktek'
 
     const message = times.map(time => {
-      if (time.length !== 5) return template('waktu')
-
       const [hour, minute] = time.split(':').map(val => Number(val))
 
       const validatedHour = validateTime(hour, 24, 'jam')
@@ -180,8 +182,19 @@ export const validate = {
   },
 
   per(value: string, element: HTMLElement) {
-    const [quota, per] = value.split(' ')
+    const [q, p] = value.trim().toLocaleLowerCase().split(' ')
+    let quota: string, per: string
+    if (!p) {
+      quota = '1'
+      per = q
+      element.innerText = `${quota} ${per}`
+    }
+    else {
+      quota = q
+      per = p
+    }
     if (!per) return 'kuota tidak memiliki satuan'
+    else if (per === 'sesi' && Number(quota) !== 1) return 'tidak bisa mengatur waktu lebih dari 1 sesi'
 
     const quotaNumber = Number(quota)
     if (isNaN(quotaNumber) && quotaNumber < 1) return 'harap masukkan kuota yang valid'
@@ -216,5 +229,5 @@ export const calculateQuota = (quota: string, per: string, time: string[]) => {
   else if (per === 'jam') perNumber = 60
   else perNumber = sessionTime
 
-  return [sessionTime, Number(quota) / perNumber]
+  return [sessionTime, Number(quota) * perNumber]
 }
