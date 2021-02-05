@@ -161,6 +161,9 @@ export const validate = {
     const times = value.split('-').map(val => val.trim())
     if (times.length !== 2) return 'harap masukkan waktu selesai praktek'
 
+    if (times[0] > times[1]) return 'waktu mulai lebih besar dari waktu selesai'
+    else if (times[0] === times[1]) return 'waktu mulai tidak bisa sama dengan waktu selesai'
+
     const message = times.map(time => {
       const [hour, minute] = time.split(':').map(val => Number(val))
 
