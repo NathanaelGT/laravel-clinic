@@ -11,7 +11,6 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\URL;
-use Redirect;
 
 class PatientRegistrationController extends Controller
 {
@@ -42,8 +41,27 @@ class PatientRegistrationController extends Controller
             'time' => $request->time
         ];
 
+        if (!$service) {
+            $doctorServices = DoctorService::with(['service' => function($query) use ($serviceName) {
+                $query->where('name', $serviceName);
+            }])->pluck('doctor_name')->toArray();
+
+            $message = "Layanan Dr. $request->doctor baru saja dihapus, harap pilih jadwal lain";
+            if (sizeof($doctorServices) > 2) {
+                $lastDoctor = array_pop($doctorServices);
+                array_push($doctorServices, "dan $lastDoctor");
+                $message .= '. Alternatif lainnya: ' . implode(', ', $doctorServices);
+            }
+            else if (sizeof($doctorServices)) {
+                $message .= '. Alternatif lainnya: ' . implode(', ', $doctorServices);
+            }
+
+            return $this->redirectInvalid($serviceName, $seleted, 'doctor', $message);
+        }
+
         $slots = [];
         $doctorWorktimeId = 0;
+        $found = false;
         foreach ($service->doctorWorktime as $schedule) {
             $patientAppointment = explode(' - ', $request->time);
             if (sizeof($patientAppointment) !== 2) {
@@ -54,9 +72,22 @@ class PatientRegistrationController extends Controller
             $patientStart = Helpers::timeToNumber($patientAppointment[0]);
             $patientEnd = Helpers::timeToNumber($patientAppointment[1]);
             if ($patientEnd - $patientStart !== (int) $quota) continue;
+            $found = true;
+
+            [$patientStart, $patientEnd] = explode('-', $request->time);
+            $patientStart = Helpers::timeToNumber($patientStart);
+            $patientEnd = Helpers::timeToNumber($patientEnd);
 
             $scheduleStart = Helpers::timeToNumber($schedule->time_start);
             $scheduleEnd = Helpers::timeToNumber($schedule->time_end);
+            if ($patientStart < $scheduleStart || $patientEnd > $scheduleEnd) {
+                return $this->redirectInvalid(
+                    $serviceName,
+                    $seleted,
+                    'time',
+                    'Layanan dr. baru saja diubah, harap pilih jam praktek lain'
+                );
+            }
 
             $doctorWorktimeId = $schedule->id;
 
@@ -84,7 +115,7 @@ class PatientRegistrationController extends Controller
                             $serviceName,
                             $seleted,
                             'time',
-                            'Slot ini telah dipesan orang lain'
+                            'Sesi ini baru saja dipesan orang lain, harap pilih jam praktek lain'
                         );
                     }
                 }
@@ -101,6 +132,15 @@ class PatientRegistrationController extends Controller
             ]);
 
             break;
+        }
+
+        if (!$found) {
+            return $this->redirectInvalid(
+                $serviceName,
+                $seleted,
+                'date',
+                'Layanan dr. ini baru saja dihapus, harap pilih jadwal lain'
+            );
         }
 
         return redirect(route('home'))->with([

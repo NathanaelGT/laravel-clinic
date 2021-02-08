@@ -86,9 +86,10 @@ class Helpers
         $tomorrow = Carbon::tomorrow();
         $today = Carbon::createMidnightDate();
         Helpers::$serviceSchedule = Service::with([
-            'doctorService.doctorWorktime.serviceAppointment' => function($query) use ($tomorrow) {
-                $query->where('date', '>=', $tomorrow);
-            }
+            'doctorService.doctorWorktime' => function($query) use ($today) {
+                $query->where('active_date', '<=', $today);
+            },
+            'doctorService.doctorWorktime.serviceAppointment'
         ])->whereName($serviceName)->firstOrFail();
         $doctors = Helpers::$serviceSchedule->doctorService->all();
 
@@ -102,9 +103,6 @@ class Helpers
 
             $sortedDay = [];
             foreach ($doctor->doctorWorktime as $schedule) {
-                $activeDate = Carbon::parse($schedule['active_date']);
-                if ($activeDate >= $today) continue; 
-
                 $scheduleDayIndex = array_search($schedule['day'], $days);
                 $scheduleDate = $tomorrow->copy()->addDays($scheduleDayIndex);
 

@@ -85,6 +85,8 @@ const showDateInputOptions = (index: number) => {
   dateInput.appendChild(placeholder)
 
   Object.keys(window.schedules[index]).forEach(unixSeconds => {
+    if (!unixSeconds) return
+
     dateInput.appendChild(
       <OptionElement
         value={unixSeconds}
@@ -97,12 +99,10 @@ const showDateInputOptions = (index: number) => {
   timeInput.appendChild(timeInputPlaceholder)
   timeInput.appendChild(timeInputWarning)
 
-  console.log((doctorInput as HTMLInputElement).value)
-  console.log(window.selected?.doctor)
   if ((doctorInput as HTMLInputElement).value === window.selected?.doctor) {
     const { date } = window.selected
     let dateOption = dateInput.querySelector(`option[value="${date}"]`) as HTMLOptionElement
-    if (!dateOption) {
+    if (!dateOption && date) {
       dateOption = <OptionElement value={date} formatedValue={getHumanReadableDate(date)} disabled />
       dateInput.appendChild(dateOption)
     }
@@ -145,6 +145,8 @@ dateInput.onchange = event => {
 
   let firstOption
   selectedWorkingSchedule?.forEach((hour: string) => {
+    if (!hour) return
+
     const option = <OptionElement value={hour} />
     if (!firstOption) firstOption = option
     timeInput.appendChild(option)
@@ -156,7 +158,7 @@ dateInput.onchange = event => {
   ) {
     const { time } = window.selected
     let timeOption = timeInput.querySelector(`option[value="${time}"]`) as HTMLOptionElement
-    if (!timeOption) {
+    if (!timeOption && time) {
       timeOption = <OptionElement value={time} disabled />
       timeInput.appendChild(timeOption)
     }
