@@ -9,7 +9,7 @@
     @if (isset($data['type'])) data-type="{{ $data['type'] }}" @endif
     @if (isset($data['max'])) maxlength="{{ $data['max'] }}" @endif
     placeholder="Masukkan {{ Str::lower($data['placeholder']) }}"
-    class="form-control"
+    class="form-control @error($kebab) is-invalid @enderror"
     autocomplete="off"
     @if (isset($data['value']) && $data['value'])
     value="{{ $data['value'] }}"
@@ -17,5 +17,9 @@
     @endif
     required
   />
-  <div class="form-text text-danger">&nbsp;</div>
+  <span class="form-text text-danger">
+    <strong>
+      {!! Session::get($kebab) ?? '&nbsp;' !!}
+    </strong>
+  </span>
 </div>

@@ -32,7 +32,7 @@ const form = document.querySelector('form')
 
 cacheInputValue.forEach(({ element, validation }) => {
   if (!element.value) {
-    const key = 'laravel-clinic:' + element.id + '-input';
+    const key = 'laravel-clinic:' + element.id + '-input'
 
     element.oninput = (event: Event) => {
       localStorage.setItem(key, (event.target as HTMLInputElement).value)
@@ -47,8 +47,9 @@ cacheInputValue.forEach(({ element, validation }) => {
 
 inputNumber.forEach(input => {
   input.onkeypress = event => {
-    if (event.which !== 8 && event.which !== 0 && event.which < 48 || event.which > 57)
+    if (event.which !== 8 && event.which !== 0 && event.which < 48 || event.which > 57) {
       event.preventDefault()
+    }
   }
 
   input.onpaste = () => {
@@ -96,6 +97,8 @@ const showDateInputOptions = (index: number) => {
   timeInput.appendChild(timeInputPlaceholder)
   timeInput.appendChild(timeInputWarning)
 
+  console.log((doctorInput as HTMLInputElement).value)
+  console.log(window.selected?.doctor)
   if ((doctorInput as HTMLInputElement).value === window.selected?.doctor) {
     const { date } = window.selected
     let dateOption = dateInput.querySelector(`option[value="${date}"]`) as HTMLOptionElement
@@ -114,13 +117,13 @@ const showDateInputOptions = (index: number) => {
     placeholder.selected = true
     timeInputPlaceholder.selected = true
   }
-
 }
 
 if (doctorInput.tagName === 'SELECT') {
   doctorInput.onchange = event => {
-    showDateInputOptions((event.target as HTMLSelectElement).selectedIndex - 1)
-    dateInput['pointer'] = (event.target as HTMLSelectElement).selectedIndex - 1
+    const index = Math.max((event.target as HTMLSelectElement).selectedIndex - 1, 0)
+    showDateInputOptions(index)
+    dateInput['pointer'] = index
   }
 }
 else {
@@ -137,8 +140,11 @@ dateInput.onchange = event => {
 
   const workingSchedule = window.schedules[Number(event.target['pointer']) || 0]
 
+  const index = Number((event.target as HTMLSelectElement).value) || Object.keys(workingSchedule)[0]
+  const selectedWorkingSchedule = workingSchedule[index]
+
   let firstOption
-  workingSchedule[(event.target as HTMLSelectElement).value]?.forEach((hour: string) => {
+  selectedWorkingSchedule?.forEach((hour: string) => {
     const option = <OptionElement value={hour} />
     if (!firstOption) firstOption = option
     timeInput.appendChild(option)
@@ -162,15 +168,16 @@ dateInput.onchange = event => {
     }
   }
   else {
-    if (workingSchedule[(event.target as HTMLSelectElement).value].length === 1)
-      firstOption.selected = true
-    else
-      timeInputPlaceholder.selected = true
+    if (selectedWorkingSchedule.length === 1) firstOption.selected = true
+    else timeInputPlaceholder.selected = true
   }
 }
 
 if (window.selected) {
-  if (doctorInput.tagName === 'SELECT')
+  if (doctorInput.tagName === 'SELECT') {
+    (doctorInput as HTMLSelectElement).value = window.selected.doctor
     doctorInput.dispatchEvent(new Event('change', { bubbles: true }))
+  }
+  (dateInput as HTMLSelectElement).value = window.selected.date
   dateInput.dispatchEvent(new Event('change', { bubbles: true }))
 }

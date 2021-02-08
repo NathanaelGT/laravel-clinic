@@ -9,6 +9,8 @@ use App\Models\PatientAppointment;
 use App\Models\ServiceAppointment;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\URL;
 use Redirect;
 
 class PatientRegistrationController extends Controller
@@ -29,16 +31,24 @@ class PatientRegistrationController extends Controller
         $date = Carbon::parse((int) $request->date);
         $dayName = $date->dayName;
 
+        $serviceName = explode('?layanan=', URL::previous())[1];
         $service = DoctorService::with(['doctorWorktime' => function($query) use ($dayName) {
             $query->where('day', $dayName);
         }])->whereDoctorName($request->doctor)->first();
+
+        $seleted = [
+            'doctor' => $request->doctor,
+            'date' => $request->date,
+            'time' => $request->time
+        ];
 
         $slots = [];
         $doctorWorktimeId = 0;
         foreach ($service->doctorWorktime as $schedule) {
             $patientAppointment = explode(' - ', $request->time);
-            if (sizeof($patientAppointment) !== 2)
-                return Redirect::back()->with(['error', 'Waktu tidak valid']);
+            if (sizeof($patientAppointment) !== 2) {
+                return $this->redirectInvalid($serviceName, $seleted, 'time', 'Waktu tidak valid');
+            }
 
             $quota = $schedule->quota;
             $patientStart = Helpers::timeToNumber($patientAppointment[0]);
@@ -69,7 +79,14 @@ class PatientRegistrationController extends Controller
                     ])->id;
 
                     if (!isset($slots[$index]) || $slots[$index] === '0') $slots[$index] = $patientId;
-                    else return Redirect::back()->withErrors(['Slot ini telah dipesan orang lain']);
+                    else {
+                        return $this->redirectInvalid(
+                            $serviceName,
+                            $seleted,
+                            'time',
+                            'Slot ini telah dipesan orang lain'
+                        );
+                    }
                 }
                 elseif (!$serviceAppointment->exists) $slots[$index] = 0;
                 $index++;
@@ -96,5 +113,19 @@ class PatientRegistrationController extends Controller
                 Alamat: $request->address
             "
         ]);
+    }
+
+    private function redirectInvalid(string $service, array $selected, string $input, string $message)
+    {
+        $schedules = Helpers::getSchedule($service);
+        $doctors = array_column(Helpers::$serviceSchedule->doctorService->all(), 'doctor_name');
+        $formAction = route('patient-registration:store');
+        $formMethod = 'POST';
+
+        Session::flash($input, $message);
+        return view(
+            'registration',
+            compact('service', 'doctors', 'schedules', 'formAction', 'formMethod', 'selected')
+        );
     }
 }

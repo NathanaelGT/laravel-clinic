@@ -6,7 +6,7 @@
 
   <div class="py-1">
     <label for="{{ $kebab }}">{{ $data['placeholder'] }}</label>
-    <select class="form-select" id="{{ $kebab }}" name="{{ $kebab }}">
+    <select class="form-select @error($kebab) is-invalid @enderror" id="{{ $kebab }}" name="{{ $kebab }}">
       <option @if (!$data['selected']) selected @endif hidden disabled aria-hidden>
         Pilih {{ Str::lower($data['placeholder']) }}
       </option>
@@ -20,8 +20,12 @@
       @else
         <option disabled aria-hidden>{{ $data['options'] }}</option>
       @endif
-
     </select>
-    <div class="form-text text-danger">&nbsp;</div>
+
+    <span class="form-text text-danger">
+      <strong>
+        {!! Session::get($kebab) ?? '&nbsp;' !!}
+      </strong>
+    </span>
   </div>
 @endif

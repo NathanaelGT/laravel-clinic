@@ -45,7 +45,7 @@ class PatientController extends Controller
             'doctor' => $doctorWorktime->doctorService->doctor_name
         ];
 
-        $seleted = [
+        $selected = [
             'doctor' => $doctorWorktime->doctorService->doctor_name,
             'date' => Carbon::parse($patientAppointment->serviceAppointment->date)->isoFormat('X'),
             'time' => implode(' - ', Helpers::getPatientMeetHour($doctorWorktime, $patientAppointment))
@@ -53,7 +53,7 @@ class PatientController extends Controller
 
         return view(
             'registration',
-            compact('service', 'doctors', 'schedules', 'formAction', 'formMethod', 'patient', 'seleted')
+            compact('service', 'doctors', 'schedules', 'formAction', 'formMethod', 'patient', 'selected')
         );
     }
 

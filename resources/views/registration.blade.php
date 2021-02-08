@@ -7,7 +7,7 @@
         </div>
       </noscript>
 
-      <form action="{{ $formAction }}" method="post" class="d-none">
+      <form action="{{ $formAction }}?layanan={{ $service }}" method="post" class="d-none">
         @method($formMethod)
         @csrf
 
@@ -81,9 +81,9 @@
 
   <x-slot name="script">
     <script>
-      window.schedules = @json($schedules)
-      @isset($seleted)
-      window.selected = @json($seleted)
+      window.schedules = @json($schedules);
+      @isset($selected)
+      window.selected = @json($selected)
       @endisset
     </script>
     <script src="{{ mix('js/patientAppointment.js') }}"></script>
