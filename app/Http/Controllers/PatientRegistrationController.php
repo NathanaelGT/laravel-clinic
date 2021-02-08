@@ -74,10 +74,6 @@ class PatientRegistrationController extends Controller
             if ($patientEnd - $patientStart !== (int) $quota) continue;
             $found = true;
 
-            [$patientStart, $patientEnd] = explode('-', $request->time);
-            $patientStart = Helpers::timeToNumber($patientStart);
-            $patientEnd = Helpers::timeToNumber($patientEnd);
-
             $scheduleStart = Helpers::timeToNumber($schedule->time_start);
             $scheduleEnd = Helpers::timeToNumber($schedule->time_end);
             if ($patientStart < $scheduleStart || $patientEnd > $scheduleEnd) {
