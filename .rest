@@ -7,11 +7,11 @@ Content-Type: application/json
 
 ###
 
-POST http://127.0.0.1:8000/api/service/37
+POST http://127.0.0.1:8000/api/service/2
 Content-Type: application/json
 
 {
-  "quota": 20,
-  "timeEnd": "16:00",
-  "timeStart": "14:00"
+  "quota": 25,
+  "timeStart": "08:00",
+  "timeEnd": "10:30"
 }

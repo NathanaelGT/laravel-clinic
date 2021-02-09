@@ -5,9 +5,14 @@ namespace App\Http\Controllers\Api;
 use App\Helpers;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\StoreServiceRequest;
+use App\Http\Requests\Api\UpdateServiceRequest;
+use App\Models\Conflict;
 use App\Models\DoctorService;
 use App\Models\DoctorWorktime;
 use App\Models\Service;
+use App\Models\ServiceAppointment;
+use Carbon\Carbon;
+use Closure;
 use Exception;
 
 class ServiceController extends Controller
@@ -49,5 +54,168 @@ class ServiceController extends Controller
             'status' => 'success',
             'redirect' => route('admin@doctor-list')
         ]);
+    }
+
+    public function update(UpdateServiceRequest $request, $id)
+    {
+        $quota = $request->quota;
+        $start = Helpers::timeToNumber($request->timeStart);
+        $end = Helpers::timeToNumber($request->timeEnd);
+
+        $invalidMessage = null;
+        if ($start >= $end) {
+            $invalidMessage = 'Waktu mulai tidak bisa lebih besar atau sama dengan waktu selesai';
+        }
+        elseif (($end - $start) % $quota) {
+            $invalidMessage = 'Waktu slot tidak dapat dibagi habis';
+        }
+        if ($invalidMessage) {
+            return response()->json(['status' => 'error', 'message' => $invalidMessage]);
+        }
+
+        // SECTION buat baru
+        if ($id === 'new') {
+            $newId = DoctorWorktime::insertGetId([
+                'doctor_service_id' => $request->doctorServiceId,
+                'day' => $request->day,
+                'quota' => $quota,
+                'time_start' => $request->timeStart,
+                'time_end' => $request->timeEnd
+            ]);
+            return response()->json(['status' => 'success', 'newId' => $newId]);
+        }
+
+
+        $appointment = ServiceAppointment::with('doctorWorktime')
+            ->whereDoctorWorktimeId($id)
+            ->where('date', '>', Carbon::today())
+            ->first();
+
+        // SECTION kalo quotanya masih belum ada yang booking/belum terdaftar
+        $doctorWorktime = null;
+        if (!$appointment) {
+            $doctorWorktime = DoctorWorktime::find($id);
+
+            if (!$doctorWorktime) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Data tidak dapat ditemukan'
+                ]);
+            }
+        }
+        elseif ($this->quotaIsEmpty($appointment->quota)) {
+            $doctorWorktime = $appointment->doctorWorktime;
+        }
+        if ($doctorWorktime) {
+            $appointment->doctorWorktime->update([
+                'quota' => $quota,
+                'time_start' => $request->timeStart,
+                'time_end' => $request->timeEnd
+            ]);
+            return response()->json(['status' => 'success']);
+        }
+
+
+        // SECTION quota yang tersimpan dan yang baru sama, yang beda waktunya
+        $doctorWorktime = $appointment->doctorWorktime;
+        if ($quota === $doctorWorktime->quota) {
+            $oldStart = Helpers::timeToNumber($doctorWorktime->time_start);
+            $newStart = Helpers::timeToNumber($request->timeStart);
+            $oldEnd = Helpers::timeToNumber($doctorWorktime->time_end);
+            $newEnd = Helpers::timeToNumber($request->timeEnd);
+
+            if ($newEnd === $oldEnd && $oldStart === $newStart) {
+                return response()->json([
+                    'status' => 'warning',
+                    'message' => 'Tidak ada yang berubah'
+                ]);
+            }
+
+
+            // SECTION antara waktu mulai lebih cepat, waktu selesai lebih lama, atau dua duanya
+            elseif (
+                ($oldStart > $newStart && $newEnd === $oldEnd) ||
+                ($newEnd > $oldEnd && $oldStart === $newStart) ||
+                ($oldStart > $newStart && $newEnd > $oldEnd)
+            ) {
+                if ($oldStart > $newStart) {
+                    $this->addSlot($oldStart, $newStart, $appointment, function ($newQuota, $oldQuota) {
+                        return array_merge($newQuota, $oldQuota);
+                    });
+                }
+                if ($newEnd > $oldEnd) {
+                    $this->addSlot($newEnd, $oldEnd, $appointment, function ($newQuota, $oldQuota) {
+                        return array_merge($oldQuota, $newQuota);
+                    });
+                }
+
+                // $appointment->save();
+                return response()->json(['status' => 'success']);
+            }
+
+
+            // SECTION antara waktu mulainya lebih lama, waktu selesainya lebih cepat, atau dua duanya
+            $startDifference = $newStart - $oldStart;
+            $endDifference = $oldEnd - $newEnd;
+            $startSlotCount = $startDifference / $request->quota;
+            $endSlotCount = $endDifference / $request->quota;
+
+            $startQuota = $startSlotCount ? array_slice($appointment->quota, 0, $startSlotCount) : [];
+            $endQuota = $endSlotCount ? array_slice($appointment->quota, -$endSlotCount) : [];
+
+
+            // SECTION quota yang bakal "dihilangin" belum ada yang booking
+            if ($this->quotaIsEmpty($startQuota) && $this->quotaIsEmpty($endQuota)) {
+                $appointment->quota = array_slice(
+                    $appointment->quota,
+                    $startSlotCount,
+                    -$endSlotCount ?: sizeof($appointment->quota)
+                );
+                $appointment->doctorWorktime->time_start = $request->timeStart;
+                $appointment->doctorWorktime->time_end = $request->timeEnd;
+                $appointment->push();
+
+                return response()->json(['status' => 'success']);
+            }
+        }
+
+
+        // SECTION antara sudah ada yang booking atau quota beda
+        Conflict::updateOrCreate([
+            'service_appointment_id' => $appointment->id,
+            'doctor_worktime_id' => $appointment->doctorWorktime->id,
+        ], [
+            'quota' => $request->quota,
+            'time_start' => $request->timeStart,
+            'time_end' => $request->timeEnd
+        ]);
+
+        return response()->json([
+            'status' => 'warning',
+            'message' => 'Sudah ada pasien yang mendaftar pada jadwal ini'
+        ]);
+    }
+
+
+    private function quotaIsEmpty(array $quota, bool $checkEmptied = false)
+    {
+        foreach ($quota as $slot) {
+            if ((int) $slot !== 0 || ($checkEmptied && (int) $slot !== -1)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private function addSlot(int $first, int $second, $appointment, Closure $closure)
+    {
+        $extraTime = $first - $second;
+        $extraQuota = $extraTime / $appointment->doctorWorktime->quota;
+        $newQuota = [];
+
+        for ($i = 0; $i < $extraQuota; $i++) $newQuota[$i] = 0;
+
+        $appointment->quota = $closure($newQuota, $appointment->quota);
     }
 }
