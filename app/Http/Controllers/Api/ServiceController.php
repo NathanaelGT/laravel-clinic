@@ -133,11 +133,13 @@ class ServiceController extends Controller
 
 
             // SECTION antara waktu mulai lebih cepat, waktu selesai lebih lama, atau dua duanya
-            elseif (
+            $success = false;
+            if (
                 ($oldStart > $newStart && $newEnd === $oldEnd) ||
                 ($newEnd > $oldEnd && $oldStart === $newStart) ||
                 ($oldStart > $newStart && $newEnd > $oldEnd)
             ) {
+                $success = true;
                 if ($oldStart > $newStart) {
                     $this->addSlot($oldStart, $newStart, $appointment, function ($newQuota, $oldQuota) {
                         return array_merge($newQuota, $oldQuota);
@@ -148,29 +150,32 @@ class ServiceController extends Controller
                         return array_merge($oldQuota, $newQuota);
                     });
                 }
-
-                // $appointment->save();
-                return response()->json(['status' => 'success']);
             }
 
 
             // SECTION antara waktu mulainya lebih lama, waktu selesainya lebih cepat, atau dua duanya
-            $startDifference = $newStart - $oldStart;
-            $endDifference = $oldEnd - $newEnd;
-            $startSlotCount = $startDifference / $request->quota;
-            $endSlotCount = $endDifference / $request->quota;
+            else {
+                $startDifference = $newStart - $oldStart;
+                $endDifference = $oldEnd - $newEnd;
+                $startSlotCount = $startDifference / $request->quota;
+                $endSlotCount = $endDifference / $request->quota;
 
-            $startQuota = $startSlotCount ? array_slice($appointment->quota, 0, $startSlotCount) : [];
-            $endQuota = $endSlotCount ? array_slice($appointment->quota, -$endSlotCount) : [];
+                $startQuota = $startSlotCount ? array_slice($appointment->quota, 0, $startSlotCount) : [];
+                $endQuota = $endSlotCount ? array_slice($appointment->quota, -$endSlotCount) : [];
 
 
-            // SECTION quota yang bakal "dihilangin" belum ada yang booking
-            if ($this->quotaIsEmpty($startQuota) && $this->quotaIsEmpty($endQuota)) {
-                $appointment->quota = array_slice(
-                    $appointment->quota,
-                    $startSlotCount,
-                    -$endSlotCount ?: sizeof($appointment->quota)
-                );
+                // SECTION quota yang bakal "dihilangin" belum ada yang booking
+                if ($this->quotaIsEmpty($startQuota) && $this->quotaIsEmpty($endQuota)) {
+                    $success = true;
+                    $appointment->quota = array_slice(
+                        $appointment->quota,
+                        $startSlotCount,
+                        -$endSlotCount ?: sizeof($appointment->quota)
+                    );
+                }
+            }
+
+            if ($success) {
                 $appointment->doctorWorktime->time_start = $request->timeStart;
                 $appointment->doctorWorktime->time_end = $request->timeEnd;
                 $appointment->push();
