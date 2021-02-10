@@ -107,7 +107,7 @@ class ServiceController extends Controller
             $doctorWorktime = $appointment->doctorWorktime;
         }
         if ($doctorWorktime) {
-            $appointment->doctorWorktime->update([
+            $doctorWorktime->update([
                 'quota' => $quota,
                 'time_start' => $request->timeStart,
                 'time_end' => $request->timeEnd
