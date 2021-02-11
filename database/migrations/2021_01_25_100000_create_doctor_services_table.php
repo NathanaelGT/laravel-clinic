@@ -17,6 +17,7 @@ class CreateDoctorServicesTable extends Migration
             $table->id();
             $table->string('doctor_name');
             $table->foreignId('service_id')->nullable()->constrained()->nullOnDelete();
+            $table->unsignedSmallInteger('display_order')->default(0);
             $table->softDeletes();
         });
     }

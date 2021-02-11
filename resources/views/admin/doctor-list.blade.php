@@ -34,11 +34,11 @@
         @forelse ($data as $service => $doctors)
         @foreach ($doctors as $doctor => $schedules)
         @if ($loop->first && sizeof($doctors) > 1)
-        <td rowspan="{{ sizeof($doctors) + 1 }}" data-drag="{{ $loop->parent->index }}">{{ $service }}</td>
+        <td rowspan="{{ sizeof($doctors) + 1 }}" data-drag="{{ $ids[$service] }}">{{ $service }}</td>
         @endif
-        <tr @if (sizeof($doctors) > 1) data-drag-target="{{ $loop->parent->index }}" @endif>
+        <tr @if (sizeof($doctors) > 1) data-drag-target="{{ $ids[$service] }}" @endif>
           @if ($loop->first && sizeof($doctors) === 1)
-          <td>{{ $service }}</td>
+          <td data-drag="{{ $ids[$service] }}">{{ $service }}</td>
           @endif
           <td class="editable" data-type="name" data-id="{{ $ids["$service.$doctor"] }}">{{ $doctor }}</td>
           <td class="doctor-schedule">

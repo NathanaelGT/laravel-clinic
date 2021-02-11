@@ -1,3 +1,5 @@
+import fetch from './fetch'
+
 export const update = (
   url: string, element: HTMLElement, data: object = {}, sibling: HTMLElement | null = null,
   callback: (res: any) => any | null = null, fail: () => any | null = null
@@ -15,75 +17,36 @@ export const update = (
     element.classList.add('text-secondary')
   }
 
-  let ok: boolean
-  let message: string
-  fetch(window.location.origin + '/api/' + url + '/' + element.dataset.id, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
-  })
-    .then(res => {
-      ok = res.ok
-      message = res.statusText
-      return res.text()
-    })
-    .then(res => {
-      if (url !== 'delete') {
-        element.contentEditable = 'true'
-        if (sibling) sibling.contentEditable = 'true'
+  fetch(`${url}/${element.dataset.id}`, 'POST', data, res => {
+    if (url !== 'delete') {
+      element.contentEditable = 'true'
+      if (sibling) sibling.contentEditable = 'true'
 
-        if (ok) {
-          element.classList.remove('text-secondary')
-          sibling?.classList.remove('text-secondary')
-        }
-        else {
-          element.classList.replace('text-secondary', 'text-danger')
-          sibling?.classList.replace('text-secondary', 'text-danger')
-        }
-      }
+      element.classList.remove('text-secondary')
+      sibling?.classList.remove('text-secondary')
 
-      try {
-        const json = JSON.parse(res)
+      if (callback) callback(res)
+      if (element.dataset.id !== 'new') return
 
-        if (url !== 'delete') {
-          element.classList.remove('text-secondary')
-          sibling?.classList.remove('text-secondary')
-        }
-        return json
-      }
-      catch {
-        return res
-      }
-    })
-    .then(res => {
-      if (ok) {
-        if (callback) callback(res)
-        if (element.dataset.id !== 'new') return
-
-        element.dataset.id = res.newId
-        const previousSibling = element.previousElementSibling
-        if (previousSibling) {
-          previousSibling.setAttribute('data-id', res.newId)
-        }
-        else {
-          element.nextElementSibling.setAttribute('data-id', res.newId)
-        }
+      element.dataset.id = res.newId
+      const previousSibling = element.previousElementSibling
+      if (previousSibling) {
+        previousSibling.setAttribute('data-id', res.newId)
       }
       else {
-        if (fail) fail()
-        element.title = message
-        console.error(message)
-
-        if (res.toLowerCase().includes('<!doctype html>') && confirm('Error terdeteksi, ingin menampilkan HTML?'))
-          document.querySelector('html').innerHTML = res
-        else console.error(res)
+        element.nextElementSibling.setAttribute('data-id', res.newId)
       }
-    })
-    .catch(err => {
-      if (fail) fail()
-      alert(err)
-      console.error(err)
-    })
+    }
+  }, message => {
+    element.contentEditable = 'true'
+    if (sibling) sibling.contentEditable = 'true'
+
+    element.classList.replace('text-secondary', 'text-danger')
+    sibling?.classList.replace('text-secondary', 'text-danger')
+
+    if (fail) fail()
+    element.title = message
+  })
 }
 
 export const fetching = {

@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\Api\ApiController;
+use App\Http\Controllers\Api\DisplayOrderController;
 use App\Http\Controllers\Api\ServiceController;
 
 /*
@@ -21,4 +22,7 @@ Route::group(['middleware' => 'api.token'], function() {
     Route::post('/service/{id}', [ServiceController::class, 'update']);
     Route::post('/doctor/{doctorService}', [ApiController::class, 'doctor']);
     Route::post('/close/{doctorWorktime}', [ApiController::class, 'close']);
+
+    Route::post('/reorderDoctorService/{service}', [DisplayOrderController::class, 'reorderDoctorService']);
+    Route::post('/reorderService', [DisplayOrderController::class, 'reorderService']);
 });

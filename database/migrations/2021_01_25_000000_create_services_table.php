@@ -16,6 +16,7 @@ class CreateServicesTable extends Migration
         Schema::create('services', function (Blueprint $table) {
             $table->id();
             $table->string('name')->unique();
+            $table->unsignedSmallInteger('display_order')->default(0);
             $table->softDeletes();
         });
     }

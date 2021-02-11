@@ -1,13 +1,21 @@
+import fetch from './fetch'
+
 export default (tableBody: HTMLElement) => {
   let draggedElement: HTMLTableRowElement[]
   let available: HTMLTableRowElement[]
   const blank = <tr />
 
+  let serviceOrder: number[]
   const services = Array.from(tableBody.querySelectorAll<HTMLTableRowElement>('tr:not([data-drag-target])'))
   services.forEach(service => {
     service.draggable = true
 
     service.addEventListener('dragstart', () => {
+      serviceOrder = Array.from(tableBody.querySelectorAll<HTMLTableDataCellElement>('td[data-drag]'))
+        .map(service => {
+          return Number(service.dataset.drag)
+        })
+
       const dragId = (service.firstElementChild as HTMLTableDataCellElement).dataset.drag
       draggedElement = [
         service,
@@ -23,12 +31,23 @@ export default (tableBody: HTMLElement) => {
     })
 
     service.addEventListener('dragend', () => {
-      draggedElement.forEach((element: HTMLTableRowElement) => {
+      const removeOpacityHalf = () => draggedElement.forEach((element: HTMLTableRowElement) => {
         element.classList.remove('opacity-half')
+      })
+      const newOrder = Array.from(tableBody.querySelectorAll<HTMLTableDataCellElement>('td[data-drag]'))
+        .map(service => {
+          return Number(service.dataset.drag)
+        })
+
+      if (serviceOrder.toString() === newOrder.toString()) return removeOpacityHalf()
+      fetch('reorderService', 'POST', { order: newOrder }, res => {
+        console.log(res)
+        removeOpacityHalf()
       })
     })
   })
 
+  let order: number[]
   tableBody.querySelectorAll<HTMLTableRowElement>('tr[data-drag-target]').forEach(schedule => {
     schedule.draggable = true
     const service = tableBody.querySelector<HTMLTableDataCellElement>(
@@ -43,6 +62,10 @@ export default (tableBody: HTMLElement) => {
       const serviceIndex = tableBodyChildren.findIndex(schedule => schedule === service)
       const lastServiceScheduleIndex = tableBodyChildren.findIndex(schedule => schedule === lastServiceSchedule)
 
+      order = Array.from(serviceSchedule).map(schedule => (
+        Number((schedule.firstElementChild as HTMLElement).dataset.id)
+      ))
+
       const serviceSchedules = tableBodyChildren.slice(serviceIndex + 1, lastServiceScheduleIndex + 2)
       available = serviceSchedules.filter(_schedule => _schedule !== schedule)
 
@@ -50,7 +73,17 @@ export default (tableBody: HTMLElement) => {
     })
 
     schedule.addEventListener('dragend', () => {
-      schedule.classList.remove('opacity-half')
+      const serviceSchedule = tableBody.querySelectorAll(`tr[data-drag-target="${schedule.dataset.dragTarget}"]`)
+      const firstChild = (schedule: Element) => schedule.firstElementChild as HTMLElement
+      const newOrder = Array.from(serviceSchedule).map(schedule => (
+        Number(firstChild(schedule).dataset.id)
+      ))
+
+      if (order.toString() === newOrder.toString()) return schedule.classList.remove('opacity-half')
+      fetch('reorderDoctorService/' + schedule.dataset.dragTarget, 'POST', { order: newOrder }, res => {
+        console.log(res)
+        schedule.classList.remove('opacity-half')
+      })
     })
   })
   tableBody.append(blank)
