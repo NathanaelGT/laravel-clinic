@@ -8,6 +8,7 @@ declare global {
 import addPlusMinusIconToSiblings from './doctorList/addPlusMinusIconToSiblings'
 import deleteTableRecord from './doctorList/deleteTableRecord'
 import { fetching, validate } from './doctorList/logic'
+import dragable from './doctorList/dragable'
 
 const applyLiveEdit = (element: HTMLElement) => {
   let text = element.innerText
@@ -112,3 +113,5 @@ document.querySelectorAll<HTMLFormElement>('form.delete-service').forEach(form =
     deleteTableRecord(form.parentElement.previousElementSibling as HTMLElement)
   }
 })
+
+dragable(document.querySelector<HTMLElement>('tbody'))

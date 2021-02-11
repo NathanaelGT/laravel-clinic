@@ -59,6 +59,10 @@ $day-width: 59px;
   color: #888;
 }
 
+.opacity-half {
+  opacity: 0.5;
+}
+
 /* admin */
 .new-service {
   min-height: calc(100vh - #{$navbarHeight});
