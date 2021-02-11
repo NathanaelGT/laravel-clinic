@@ -24,7 +24,7 @@ class UpdateDisplayOrderRequest extends FormRequest
     public function rules()
     {
         return [
-            'order' => 'required|array|min:1',
+            'order' => 'required|array|min:2',
             'order.*' => 'required|integer|min:1'
         ];
     }
