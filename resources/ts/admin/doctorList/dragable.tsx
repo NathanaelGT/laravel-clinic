@@ -40,9 +40,11 @@ export default (tableBody: HTMLElement) => {
         })
 
       if (serviceOrder.toString() === newOrder.toString()) return removeOpacityHalf()
-      fetch('reorderService', 'POST', { order: newOrder }, res => {
-        console.log(res)
-        removeOpacityHalf()
+      fetch('reorderService', 'POST', { order: newOrder }, removeOpacityHalf, message => {
+        draggedElement.forEach((element: HTMLTableRowElement) => {
+          element.classList.replace('opacity-half', 'text-danger')
+          element.title = message
+        })
       })
     })
   })
@@ -80,9 +82,11 @@ export default (tableBody: HTMLElement) => {
       ))
 
       if (order.toString() === newOrder.toString()) return schedule.classList.remove('opacity-half')
-      fetch('reorderDoctorService/' + schedule.dataset.dragTarget, 'POST', { order: newOrder }, res => {
-        console.log(res)
+      fetch('reorderDoctorService/' + schedule.dataset.dragTarget, 'POST', { order: newOrder }, () => {
         schedule.classList.remove('opacity-half')
+      }, message => {
+        schedule.classList.replace('opacity-half', 'text-danger')
+        schedule.title = message
       })
     })
   })
