@@ -99,4 +99,9 @@ class LoginController extends Controller
             ? new JsonResponse([], 204)
             : redirect('/')->withCookie($cookie);
     }
+
+    protected function attemptLogin(Request $request)
+    {
+        return $this->guard()->attempt($this->credentials($request), true);
+    }
 }
