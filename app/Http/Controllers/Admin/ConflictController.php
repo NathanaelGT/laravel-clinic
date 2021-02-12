@@ -35,7 +35,7 @@ class ConflictController extends Controller
     {
         \DB::transaction(function() use ($conflict) {
             $serviceAppointment = $conflict->serviceAppointment;
-            $nextWeek = Carbon::parse($serviceAppointment->date)->addWeek();
+            $nextWeek = Carbon::parse($serviceAppointment->date);
 
             $serviceAppointment->quota = array_map(
                 fn ($value) => $value === -1 ? 0 : $value,
@@ -49,6 +49,7 @@ class ConflictController extends Controller
             DoctorWorktime::create([
                 'doctor_service_id' => $conflict->doctorWorktime->doctor_service_id,
                 'quota' => $conflict->quota,
+                'day' => $conflict->doctorWorktime->day,
                 'time_start' => $conflict->time_start,
                 'time_end' => $conflict->time_end,
                 'active_date' => $nextWeek

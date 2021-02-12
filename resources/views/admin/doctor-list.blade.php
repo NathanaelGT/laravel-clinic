@@ -65,9 +65,9 @@
                       "
                       class="one-line
                         @if ($schedule['activeDate']->isFuture())
-                          text-decoration-underline
+                          fst-italic grey
                         @elseif (!is_null($schedule['deletedAt']))
-                          text-decoration-line-through grey
+                          text-decoration-line-through
                         @endif
                       "
                     >

@@ -15,3 +15,12 @@ Content-Type: application/json
   "timeStart": "08:00",
   "timeEnd": "10:30"
 }
+
+###
+POST http://127.0.0.1:8000/api/merge
+Content-Type: application/json
+
+{
+  "first": 74,
+  "second": 71
+}

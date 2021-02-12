@@ -1,4 +1,5 @@
 import fetch from './fetch'
+import { applyLiveEdit } from '../doctorList'
 
 export const update = (
   url: string, element: HTMLElement, data: object = {}, sibling: HTMLElement | null = null,
@@ -76,7 +77,18 @@ export const fetching = {
       data['day'] = (grandParent.previousElementSibling as HTMLElement).innerText.split(':')[0]
     }
 
-    update('service', element, data, sibling, ({ status, message }) => {
+    update('service', element, data, sibling, ({ status, message, twinsId }) => {
+      if (twinsId && confirm('Jadwal ini terdeteksi duplikat, apakah anda ingin menghapus salah satunya?')) {
+        const twins = element.parentElement.parentElement.querySelector(`span[data-id="${twinsId}"]`) as HTMLElement
+        fetch('merge', 'POST', { first: twins.dataset.id, second: element.dataset.id }, res => {
+          const deleted = res.deleted_id === twins.dataset.id ? twins.parentElement : element.parentElement
+          const notDeleted = res.deleted_id === twins.dataset.id ? element.parentElement : twins.parentElement
+          notDeleted.className = 'one-line'
+          applyLiveEdit(notDeleted)
+          deleted.remove()
+        })
+        console.log(twins, element)
+      }
       if (status !== 'warning') return
 
       element.style.color = '#FF9000'

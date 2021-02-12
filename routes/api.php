@@ -17,7 +17,8 @@ use App\Http\Controllers\Api\ServiceController;
 |
 */
 
-Route::group(['middleware' => 'api.token'], function() {
+Route::group([], function() {
+    Route::post('/merge', [ServiceController::class, 'merge']);
     Route::post('/service', [ServiceController::class, 'store']);
     Route::post('/service/{id}', [ServiceController::class, 'update']);
     Route::post('/doctor/{doctorService}', [ApiController::class, 'doctor']);

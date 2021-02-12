@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Helpers;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\MergeServiceRequest;
 use App\Http\Requests\Api\StoreServiceRequest;
 use App\Http\Requests\Api\UpdateServiceRequest;
 use App\Models\Conflict;
@@ -107,12 +108,26 @@ class ServiceController extends Controller
             $doctorWorktime = $appointment->doctorWorktime;
         }
         if ($doctorWorktime) {
+            $activeDate = Carbon::parse($doctorWorktime->active_date)->minutes(0);
+            $twins = null;
+            if ($activeDate->isFuture()) {
+                $twins = DoctorWorktime::whereDoctorServiceId($doctorWorktime->doctor_service_id)
+                    ->whereQuota($quota)
+                    ->where('day', $doctorWorktime->day)
+                    ->whereTimeStart($request->timeStart)
+                    ->whereTimeEnd($request->timeEnd)
+                    ->whereDate('deleted_at', $activeDate)
+                    ->first();
+            }
             $doctorWorktime->update([
                 'quota' => $quota,
                 'time_start' => $request->timeStart,
                 'time_end' => $request->timeEnd
             ]);
-            return response()->json(['status' => 'success']);
+
+            $message = ['status' => 'success'];
+            if ($twins) $message['twinsId'] = $twins->id;
+            return response()->json($message);
         }
 
 
@@ -199,6 +214,40 @@ class ServiceController extends Controller
             'status' => 'warning',
             'message' => 'Sudah ada pasien yang mendaftar pada jadwal ini'
         ]);
+    }
+
+    public function merge(MergeServiceRequest $request)
+    {
+        $id = $request->validated();
+        sort($id);
+        try {
+            $first = DoctorWorktime::find($id[0]);
+            $second = DoctorWorktime::whereId($id[1])
+                ->doesnthave('serviceAppointment')
+                ->doesnthave('conflict')
+                ->first();
+        }
+        catch(Exception $ignored) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Data tidak dapat ditemukan',
+            ]);
+        }
+
+        if (sizeof(array_diff_assoc($first->toArray(), $second->toArray())) > 3) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Data yang diberikan tidak cocok',
+            ]);
+        }
+
+
+        \DB::transaction(function() use ($first, $second) {
+            $first->restore();
+            $second->delete();
+        });
+
+        return response()->json(['status' => 'success', 'deleted_id' => $second->id]);
     }
 
 

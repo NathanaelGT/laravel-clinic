@@ -10,7 +10,9 @@ import deleteTableRecord from './doctorList/deleteTableRecord'
 import { fetching, validate } from './doctorList/logic'
 import dragable from './doctorList/dragable'
 
-const applyLiveEdit = (element: HTMLElement) => {
+export const applyLiveEdit = (element: HTMLElement) => {
+  if (element.contentEditable === 'true') return
+
   let text = element.innerText
 
   element.contentEditable = 'true'
