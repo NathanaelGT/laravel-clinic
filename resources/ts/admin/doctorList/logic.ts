@@ -58,14 +58,10 @@ export const fetching = {
     const children = element.parentElement.children
     const sibling = children[element === children[0] ? 1 : 0] as HTMLElement
 
-    const [rawTime, rawQuota] = (
-      Array.from(children).map((element, index) => (
-        (element as HTMLElement).innerText.split(index === 0 ? ' - ' : ' ')
-      ))
-    )
+    const rawTime = (children[0] as HTMLElement).innerText.split(' - ')
+    const rawQuota = (children[1] as HTMLElement).innerText
 
-    // @ts-ignore
-    const quota = calculateQuota(...rawQuota, rawTime)[1]
+    const quota = calculateQuota(rawQuota, rawTime)[1]
     const [timeStart, timeEnd] = rawTime
     const data = { quota, timeStart, timeEnd }
 
@@ -105,8 +101,8 @@ export const fetching = {
 }
 
 
-const checkQuotaAndReturnErrorIfInvalid = (quota: string, per: string, times: string[]) => {
-  const [sessionTime, calculatedQuota] = calculateQuota(quota, per, times)
+const validateQuota = (per: string, time: string[]) => {
+  const [sessionTime, calculatedQuota] = calculateQuota(per, time)
   const modulos = sessionTime % calculatedQuota
   if (modulos) {
     return `waktu kuota tidak bisa dibagi habis (sisa ${modulos} menit / kurang ${calculatedQuota - modulos} menit)`
@@ -126,6 +122,45 @@ const validateTime = (variable: number, max: number, name: string) => {
   if (variable < 0) return template(name, name + ' kurang dari 0')
 }
 
+const readFormat = (format: string, time: number) => {
+  if (format.indexOf('sesi') > -1 || format.indexOf('s') > -1) return time
+
+  let per = 0
+  const timeFormat = format.toLocaleLowerCase().split(format.indexOf('jam') > -1 ? 'jam' : 'j')
+  const hourNumber = Number(timeFormat[0] || 1)
+
+  if (isNaN(hourNumber)) {
+    const timeF = timeFormat.join('')
+    if (timeF === 'menit' || timeF === 'm') per++
+    else {
+      const [minute, hour] = timeFormat[0].split(format.indexOf('menit') > -1 ? 'menit' : 'm').map(val => {
+        const num = Number(val)
+        return isNaN(num) ? 0 : num
+      })
+
+      per += hour * 60
+      per += minute
+    }
+  }
+  else {
+    const minute = timeFormat[1]?.split(format.indexOf('menit') > -1 ? 'menit' : 'm')[0] || 0
+    per += hourNumber * 60
+    per += Number(minute)
+  }
+
+  return per || NaN
+}
+
+const formatTime = (per: number, time: number) => {
+  if (per === time) return '1 sesi'
+
+  const minutes = per % 60
+  const hours = (per - minutes) / 60
+  if (!minutes) return `${hours} jam`
+  if (!hours) return `${minutes} menit`
+  return `${hours} jam ${minutes} menit`
+}
+
 export const validate = {
   name(value: string) {
     if (value.length < 1) return 'nama terlalu pendek (minimal 1 huruf)'
@@ -133,14 +168,14 @@ export const validate = {
   },
 
   time(value: string, element: HTMLElement) {
-    const times = value.split('-').map(val => val.trim())
-    if (times.length !== 2) return 'harap masukkan waktu selesai praktek'
+    const time = value.split('-').map(val => val.trim())
+    if (time.length !== 2) return 'harap masukkan waktu selesai praktek'
 
-    if (times[0] > times[1]) return 'waktu mulai lebih besar dari waktu selesai'
-    else if (times[0] === times[1]) return 'waktu mulai tidak bisa sama dengan waktu selesai'
+    if (time[0] > time[1]) return 'waktu mulai lebih besar dari waktu selesai'
+    else if (time[0] === time[1]) return 'waktu mulai tidak bisa sama dengan waktu selesai'
 
-    const message = times.map(time => {
-      const [hour, minute] = time.split(':').map(val => Number(val))
+    const message = time.map(time => {
+      const [hour, minute] = time.split(':').map(Number)
 
       const validatedHour = validateTime(hour, 24, 'jam')
       if (validatedHour) return validatedHour
@@ -153,58 +188,38 @@ export const validate = {
       if (message[i]) return message[i]
     }
 
-    const [quota, per] = (element.nextElementSibling as HTMLElement).innerText.split(' ')
-    const validation = checkQuotaAndReturnErrorIfInvalid(quota, per, times)
+    const per = (element.nextElementSibling as HTMLElement).innerText
+    const validation = validateQuota(per, time)
     if (validation) return validation
   },
 
   per(value: string, element: HTMLElement) {
-    const [q, p] = value.trim().toLocaleLowerCase().split(' ')
-    let quota: string, per: string
-    if (!p) {
-      quota = '1'
-      per = q
-      element.innerText = `${quota} ${per}`
-    }
-    else {
-      quota = q
-      per = p
-    }
-    if (!per) return 'kuota tidak memiliki satuan'
-    else if (per === 'sesi' && Number(quota) !== 1) return 'tidak bisa mengatur waktu lebih dari 1 sesi'
+    const [start, end] = (element.previousElementSibling as HTMLElement).innerText.split('-')
+    const time = timeToNumber(end) - timeToNumber(start)
+    const per = readFormat(value, time)
+    if (isNaN(per)) return 'kuota tidak valid'
+    else element.innerText = formatTime(per, time)
 
-    const quotaNumber = Number(quota)
-    if (isNaN(quotaNumber) && quotaNumber < 1) return 'harap masukkan kuota yang valid'
-
-    const validPer = ['sesi', 'jam', 'menit']
-    if (validPer.indexOf(per.toLowerCase()) === -1) return 'harap masukkan satuan yang valid (sesi/jam/menit)'
-
-    const validation = checkQuotaAndReturnErrorIfInvalid(
-      quota, per, (element.previousElementSibling as HTMLElement).innerText.split('-')
-    )
+    const validation = validateQuota(value, [start, end])
     if (validation) return validation
   }
 }
 
 
 export const timeToNumber = (time: string) => {
-  const [hours, minutes] = time.split(':').map(time => Number(time))
+  const [hours, minutes] = time.split(':').map(Number)
 
   return hours * 60 + (minutes || 0)
 }
 
-export const calculateQuota = (quota: string, per: string, time: string[]) => {
+export const calculateQuota = (per: string, time: string[]) => {
   if (time.length !== 2) {
     alert('Harap isi waktu mulai dan tutup dengan valid')
     throw new Error('Invalid time element')
   }
 
   const sessionTime = timeToNumber(time[1]) - timeToNumber(time[0])
-  let perNumber: number
+  const _per = readFormat(per, sessionTime)
 
-  if (per === 'menit') perNumber = 1
-  else if (per === 'jam') perNumber = 60
-  else perNumber = sessionTime
-
-  return [sessionTime, Number(quota) * perNumber]
+  return [sessionTime, _per]
 }

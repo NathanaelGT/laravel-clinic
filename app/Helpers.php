@@ -46,10 +46,10 @@ class Helpers
         if ($slot === $time) return '1 sesi';
 
         $minutes = $slot % 60;
-        if ($minutes) return "$minutes menit";
-
-        $hours = $slot / 60;
-        return "$hours jam";
+        $hours = ($slot - $minutes) / 60;
+        if (!$minutes) return "$hours jam";
+        if (!$hours) return "$minutes menit";
+        return "$hours jam $minutes menit";
     }
 
 

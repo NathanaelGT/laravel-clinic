@@ -59,14 +59,14 @@
                     title="
                       @if ($schedule['activeDate']->isFuture())
                         Jadwal ini akan berlaku mulai {{ $schedule['activeDate']->isoFormat('dddd, DD MMMM YYYY') }}
-                      @elseif (!is_null($schedule['deletedAt']))
-                        Jadwal ini akan terhapus pada {{ \Carbon\Carbon::parse($schedule['deletedAt'])->isoFormat('dddd, DD MMMM YYYY') }}
+                      @elseif ($schedule['deletedAt'])
+                        Jadwal ini akan terhapus pada {{ $schedule['deletedAt']->isoFormat('dddd, DD MMMM YYYY') }}
                       @endif
                       "
                       class="one-line
                         @if ($schedule['activeDate']->isFuture())
                           fst-italic grey
-                        @elseif (!is_null($schedule['deletedAt']))
+                        @elseif ($schedule['deletedAt'])
                           text-decoration-line-through
                         @endif
                       "

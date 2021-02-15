@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\SoftDeletesCompare as SoftDeletes;
+use Carbon\Carbon;
 
 /**
  * App\Models\DoctorWorktime
@@ -44,6 +45,11 @@ class DoctorWorktime extends Model
 
     public $fillable = ['doctor_service_id', 'quota', 'day', 'time_start', 'time_end', 'active_date', 'deleted_at'];
     public $timestamps = false;
+
+    public function getDeletedAtAttribute($value)
+    {
+        return $value ? Carbon::parse($value) : null;
+    }
 
     public function doctorService()
     {
