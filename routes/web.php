@@ -43,11 +43,11 @@ Route::group(['prefix' => 'admin', 'as' => 'admin@', 'middleware' => 'auth'], fu
         Route::delete('/{doctorService}', [DoctorController::class, 'delete'])->name('delete-service');
     });
 
-    Route::group(['prefix' => 'conflict', 'as' => 'conflict-'], function() {
+    Route::group(['prefix' => 'conflict', 'as' => 'conflict'], function() {
         Route::get('/', [ConflictController::class, 'list']);
-        Route::get('cancel/{conflict}', [ConflictController::class, 'destroy'])->name('cancel');
-        Route::get('close/{serviceAppointment}',[ConflictController::class, 'closeRegistration'])->name('close');
-        Route::get('nextweek/{conflict}',[ConflictController::class, 'nextWeek'])->name('nextweek');
+        Route::get('cancel/{conflict}', [ConflictController::class, 'destroy'])->name('-cancel');
+        Route::get('close/{serviceAppointment}',[ConflictController::class, 'closeRegistration'])->name('-close');
+        Route::get('nextweek/{conflict}', [ConflictController::class, 'nextWeek'])->name('-nextweek');
     });
 });
 
