@@ -27,39 +27,28 @@ Route::get('/home', [HomeController::class, 'index']);
 Route::get('/daftar', [PatientRegistrationController::class, 'index'])->name('patient-registration');
 Route::post('/daftar', [PatientRegistrationController::class, 'store'])->name('patient-registration:store');
 
-Route::group(['prefix' => 'admin', 'middleware' => 'auth'], function () {
-    Route::get('new-service', [ServiceController::class, 'create'])->name('admin@new-service');
-    Route::get('patient-list', [PatientController::class, 'list'])->name('admin@patient-list');
-    Route::get('patient-done/{patientAppointment}', [PatientController::class, 'done'])->name('admin@patient-done');
-    Route::get(
-        'patient-cancel/{patientAppointment}',
-        [PatientController::class, 'cancel']
-    )->name('admin@patient-cancel');
-    Route::get(
-        'patient-reschedule/{patientAppointment}',
-        [PatientController::class, 'reschedule']
-    )->name('admin@patient-reschedule');
-    Route::put(
-        'patient-reschedule',
-        [PatientController::class, 'update']
-    )->name('admin@patient-reschedule:put');
+Route::group(['prefix' => 'admin', 'as' => 'admin@', 'middleware' => 'auth'], function() {
+    Route::get('new-service', [ServiceController::class, 'create'])->name('new-service');
 
-    Route::get('doctor-list', [DoctorController::class, 'list'])->name('admin@doctor-list');
-    Route::delete(
-        'doctor-list/{doctorService}',
-        [DoctorController::class, 'delete']
-    )->name('admin@delete-service');
+    Route::group(['prefix' => 'patient-', 'as' => 'patient-'], function() {
+        Route::get('list', [PatientController::class, 'list'])->name('list');
+        Route::get('done/{patientAppointment}', [PatientController::class, 'done'])->name('done');
+        Route::get('cancel/{patientAppointment}', [PatientController::class, 'cancel'])->name('cancel');
+        Route::get('reschedule/{patientAppointment}', [PatientController::class, 'reschedule'])->name('reschedule');
+        Route::put('reschedule', [PatientController::class, 'update'])->name('reschedule:put');
+    });
 
-    Route::get('conflict', [ConflictController::class, 'list'])->name('admin@conflict');
-    Route::get('conflict/cancel/{conflict}', [ConflictController::class, 'destroy'])->name('admin@conflict-cancel');
-    Route::get(
-        'conflict/close/{serviceAppointment}',
-        [ConflictController::class, 'closeRegistration']
-    )->name('admin@conflict-close');
-    Route::get(
-        'conflict/nextweek/{conflict}',
-        [ConflictController::class, 'nextWeek']
-    )->name('admin@conflict-nextweek');
+    Route::group(['prefix' => 'doctor-list'], function() {
+        Route::get('/', [DoctorController::class, 'list'])->name('doctor-list');
+        Route::delete('/{doctorService}', [DoctorController::class, 'delete'])->name('delete-service');
+    });
+
+    Route::group(['prefix' => 'conflict', 'as' => 'conflict'], function() {
+        Route::get('/', [ConflictController::class, 'list']);
+        Route::get('cancel/{conflict}', [ConflictController::class, 'destroy'])->name('cancel');
+        Route::get('close/{serviceAppointment}',[ConflictController::class, 'closeRegistration'])->name('close');
+        Route::get('nextweek/{conflict}',[ConflictController::class, 'nextWeek'])->name('nextweek');
+    });
 });
 
 Auth::routes();
