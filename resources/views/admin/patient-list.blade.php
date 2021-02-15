@@ -36,13 +36,20 @@
           <td>{{ "$timeStart - $timeEnd" }}</td>
           <td>
             <a
-              href="#"
+              href="{{ route('admin@patient-done', ['patientAppointment' => $patient['id']]) }}"
               class="btn btn-success @if ($date->isFuture()) invisible @endif"
               @if ($date->isFuture()) aria-hidden @endif
             >
               Selesai
             </a>
-            <a href="#" class="btn btn-danger">Batal</a>
+
+            <a
+              href="{{ route('admin@patient-cancel', ['patientAppointment' => $patient['id']]) }}"
+              class="btn btn-danger"
+            >
+              Batal
+            </a>
+
             <a
               href="{{ route('admin@patient-reschedule', ['patientAppointment' => $patient['id']]) }}"
               class="btn btn-warning text-white"

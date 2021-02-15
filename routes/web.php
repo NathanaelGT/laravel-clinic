@@ -30,6 +30,11 @@ Route::post('/daftar', [PatientRegistrationController::class, 'store'])->name('p
 Route::group(['prefix' => 'admin', 'middleware' => 'auth'], function () {
     Route::get('new-service', [ServiceController::class, 'create'])->name('admin@new-service');
     Route::get('patient-list', [PatientController::class, 'list'])->name('admin@patient-list');
+    Route::get('patient-done/{patientAppointment}', [PatientController::class, 'done'])->name('admin@patient-done');
+    Route::get(
+        'patient-cancel/{patientAppointment}',
+        [PatientController::class, 'cancel']
+    )->name('admin@patient-cancel');
     Route::get(
         'patient-reschedule/{patientAppointment}',
         [PatientController::class, 'reschedule']

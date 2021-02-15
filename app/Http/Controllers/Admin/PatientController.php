@@ -17,7 +17,11 @@ class PatientController extends Controller
     public function list()
     {
         $service = 'service_appointments';
-        $patients = PatientAppointment::with('patient', 'serviceAppointment.doctorWorktime.doctorService.service')
+        $patients = PatientAppointment::with([
+                'patient',
+                'serviceAppointment.doctorWorktime' => fn ($query) => $query->withTrashed(),
+                'serviceAppointment.doctorWorktime.doctorService.service'
+            ])
             ->whereStatus('Menunggu')
             ->join($service, "$service.id", '=', 'patient_appointments.service_appointment_id')
             ->orderBy("$service.date")
@@ -26,6 +30,20 @@ class PatientController extends Controller
             ->toArray();
 
         return view('admin.patient-list', compact('patients'));
+    }
+
+    public function done(PatientAppointment $patientAppointment)
+    {
+        $patientAppointment->update(['status' => 'Selesai']);
+
+        return redirect(route('admin@patient-list'));
+    }
+
+    public function cancel(PatientAppointment $patientAppointment)
+    {
+        $patientAppointment->update(['status' => 'Dibatalkan']);
+
+        return redirect(route('admin@patient-list'));
     }
 
     public function reschedule(Request $request, PatientAppointment $patientAppointment)
