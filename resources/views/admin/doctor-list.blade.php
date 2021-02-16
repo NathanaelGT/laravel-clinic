@@ -116,8 +116,8 @@
 
   <x-slot name="script">
     <script>
-      window.plusUrl = '{{ asset("svg/plus.svg") }}'
-      window.minusUrl = '{{ asset("svg/minus.svg") }}'
+      window.plusUrl = '{{ asset("svg/plus.svg") }}';
+      window.minusUrl = '{{ asset("svg/minus.svg") }}';
     </script>
     <script src="{{ mix('js/admin/doctorList.js') }}"></script>
   </x-slot>

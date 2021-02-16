@@ -83,7 +83,7 @@
     <script>
       window.schedules = @json($schedules);
       @isset($selected)
-      window.selected = @json($selected)
+      window.selected = @json($selected);
       @endisset
     </script>
     <script src="{{ mix('js/patientAppointment.js') }}"></script>

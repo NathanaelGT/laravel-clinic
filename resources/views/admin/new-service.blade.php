@@ -11,7 +11,7 @@
 
   <x-slot name="script">
     <script>
-      window.services = @json($services)
+      window.services = @json($services);
     </script>
     <script src="{{ mix('js/admin/newService.js') }}"></script>
   </x-slot>
