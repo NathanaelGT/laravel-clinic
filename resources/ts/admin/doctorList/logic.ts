@@ -58,7 +58,7 @@ export const fetching = {
     const children = element.parentElement.children
     const sibling = children[element === children[0] ? 1 : 0] as HTMLElement
 
-    const rawTime = (children[0] as HTMLElement).innerText.split(' - ')
+    const rawTime = (children[0] as HTMLElement).innerText.split('-')
     const rawQuota = (children[1] as HTMLElement).innerText
 
     const quota = calculateQuota(rawQuota, rawTime)[1]
@@ -83,7 +83,6 @@ export const fetching = {
           applyLiveEdit(notDeleted)
           deleted.remove()
         })
-        console.log(twins, element)
       }
       if (status !== 'warning') return
 
@@ -168,25 +167,33 @@ export const validate = {
   },
 
   time(value: string, element: HTMLElement) {
-    const time = value.split('-').map(val => val.trim())
-    if (time.length !== 2) return 'harap masukkan waktu selesai praktek'
+    const time = value.split(value.indexOf('-') > -1 ? '-' : ' ').map(val => val.trim())
+    const timeNumber = time.map(timeToNumber)
+    if (time.length !== 2) return 'waktu praktek tidak valid'
 
-    if (time[0] > time[1]) return 'waktu mulai lebih besar dari waktu selesai'
-    else if (time[0] === time[1]) return 'waktu mulai tidak bisa sama dengan waktu selesai'
+    if (timeNumber[0] > timeNumber[1]) return 'waktu mulai lebih besar dari waktu selesai'
+    else if (timeNumber[0] === timeNumber[1]) return 'waktu mulai tidak bisa sama dengan waktu selesai'
 
-    const message = time.map(time => {
-      const [hour, minute] = time.split(':').map(Number)
+    let timeFormat = ''
+    const message = time.map((time, index) => {
+      const timeNumber = time.split(time.indexOf(':') > -1 ? ':' : ' ').map(Number)
+      const hour = timeNumber[0]
+      const minute = timeNumber[1] || 0
 
       const validatedHour = validateTime(hour, 24, 'jam')
       if (validatedHour) return validatedHour
 
       const validatedMinute = validateTime(minute, 60, 'menit')
       if (validatedMinute) return validatedMinute
+
+      if (index > 0) timeFormat += ' - '
+      timeFormat += (hour > 9 ? hour : '0' + hour) + ':' + (minute > 9 ? minute : '0' + minute)
     })
 
     for (let i = 0; i < message.length - 1; i++) {
       if (message[i]) return message[i]
     }
+    element.innerText = timeFormat
 
     const per = (element.nextElementSibling as HTMLElement).innerText
     const validation = validateQuota(per, time)
