@@ -29,33 +29,17 @@
         @foreach ($conflict->serviceAppointment->patientAppointment as $patientAppointment)
         @if ($loop->first)
         <tr>
-          <td rowspan="{{ $loop->count }}">
-            {{ \Carbon\Carbon::parse($conflict->serviceAppointment->date)->isoFormat('dddd, D MMMM YYYY') }}
-          </td>
-
-          <td rowspan="{{ $loop->count }}">
-            {{ $conflict->doctorWorktime->doctorService->doctor_name }}
-          </td>
-
-          <td rowspan="{{ $loop->count }}">
-            {{ "{$conflict->doctorWorktime->time_start} - {$conflict->doctorWorktime->time_end}" }}
-          </td rowspan="{{ $loop->count }}">
-
-          <td rowspan="{{ $loop->count }}">
-            {{ $conflict->doctorWorktime->quota }}
-          </td>
-
-          <td rowspan="{{ $loop->count }}">
-            {{ $conflict->time_start . ' - ' . $conflict->time_end }}
-          </td rowspan="{{ $loop->count }}">
-
-          <td rowspan="{{ $loop->count }}">
-            {{ $conflict->quota }}
-          </td>
-
-          <td>
-            {{ $patientAppointment->patient->name }}
-          </td>
+          @foreach ([
+            \Carbon\Carbon::parse($conflict->serviceAppointment->date)->isoFormat('dddd, D MMMM YYYY'),
+            $conflict->doctorWorktime->doctorService->doctor_name,
+            $conflict->doctorWorktime->time_start . ' - ' . $conflict->doctorWorktime->time_end,
+            $conflict->doctorWorktime->quota,
+            $conflict->time_start . ' - ' . $conflict->time_end,
+            $conflict->quota
+          ] as $text)
+          <td rowspan="{{ $loop->count }}">{{ $text }}</td>
+          @endforeach
+          <td>{{ $patientAppointment->patient->name }}</td>
 
           <td>
             <a
@@ -81,11 +65,8 @@
             </a>
             @php
               $url = '';
-              if (!in_array(-1, $conflict->serviceAppointment->quota)) {
-                $url = route(
-                  'admin@conflict-close',
-                  ['serviceAppointment' => $conflict->serviceAppointment->id]
-                );
+              if (in_array(0, $conflict->serviceAppointment->quota)) {
+                $url = route('admin@conflict-close', ['serviceAppointment' => $conflict->serviceAppointment->id]);
               }
             @endphp
             @if ($url)
@@ -121,30 +102,4 @@
       </tbody>
     </table>
   </div>
-
-  <x-slot name="script">
-    <script>
-      (table => {
-        const data = {}
-        table.querySelectorAll('tr').forEach(tr => {
-          const element = tr.firstElementChild
-          const signature = element.innerHTML + tr.classList
-
-          if (data?.signature === signature) {
-            const rowSpan = Number(element.rowSpan) || 1
-            data.element.rowSpan += rowSpan
-            element.classList.add('rowspan-remove')
-          }
-          else {
-            data.signature = signature
-            data.element = element
-          }
-        })
-
-        table.querySelectorAll('.rowspan-remove').forEach(element => {
-          element.remove()
-        })
-      })(document.querySelector('table'))
-    </script>
-  </x-slot>
 </x-app>

@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\DoctorService;
 use App\Models\Service;
 
 class HomeController extends Controller
@@ -13,6 +12,7 @@ class HomeController extends Controller
             'doctorService' => fn ($query) => $query->orderBy('display_order'),
             'doctorService.doctorWorktime'
         ])
+            ->has('doctorService')
             ->orderBy('display_order')
             ->get()
             ->toArray();
@@ -41,7 +41,7 @@ class HomeController extends Controller
                 }
             );
             return $carry;
-        });
+        }, []);
 
         return view('home', compact('data'));
     }

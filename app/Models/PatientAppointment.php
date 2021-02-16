@@ -45,6 +45,8 @@ class PatientAppointment extends Model
     public function resolveRouteBinding($value, $field = null)
     {
         return $this->with('patient', 'serviceAppointment.doctorWorktime.doctorService.service')
-            ->whereId($value)->whereStatus('Menunggu')->firstOrFail();
+            ->whereId($value)
+            ->whereStatus('Menunggu')
+            ->firstOrFail();
     }
 }

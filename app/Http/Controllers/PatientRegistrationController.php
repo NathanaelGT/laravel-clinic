@@ -27,7 +27,7 @@ class PatientRegistrationController extends Controller
 
     public function store(Request $request)
     {
-        $date = Carbon::parse((int) $request->date);
+        $date = Carbon::parse((int) $request->date)->addHours(8);
         $dayName = $date->dayName;
 
         $serviceName = explode('?layanan=', URL::previous())[1];
@@ -81,7 +81,7 @@ class PatientRegistrationController extends Controller
                     $serviceName,
                     $seleted,
                     'time',
-                    'Layanan dr. baru saja diubah, harap pilih jam praktek lain'
+                    "Layanan dr. $request->doctor baru saja diubah, harap pilih jam praktek lain"
                 );
             }
 
@@ -135,7 +135,7 @@ class PatientRegistrationController extends Controller
                 $serviceName,
                 $seleted,
                 'date',
-                'Layanan dr. ini baru saja dihapus, harap pilih jadwal lain'
+                "Layanan dr. $request->doctor baru saja dihapus, harap pilih jadwal lain"
             );
         }
 
@@ -153,7 +153,7 @@ class PatientRegistrationController extends Controller
 
     private function redirectInvalid(string $service, array $selected, string $input, string $message)
     {
-        $schedules = Helpers::getSchedule($service);
+        $schedules = Helpers::getSchedule(urldecode($service));
         $doctors = array_column(Helpers::$serviceSchedule->doctorService->all(), 'doctor_name');
         $formAction = route('patient-registration:store');
         $formMethod = 'POST';
