@@ -14,19 +14,22 @@ interface Window {
   }
 }
 
+const isNotEmpty = (val: string) => Boolean(val)
 const isNumber = (val: string) => !isNaN(Number(val)) && !/\./.test(val)
+const isPhoneNumber = (val: string) => /^[0-9]{0,5}[-\s\.]?[0-9]{0,5}[-\s\.]?[0-9]{0,5}$/.test(val)
 
 const cacheInputValue = [
-  { validation: () => true, element: document.getElementById('name') as HTMLInputElement },
+  { validation: isNotEmpty, element: document.getElementById('name') as HTMLInputElement },
   { validation: isNumber, element: document.getElementById('nik') as HTMLInputElement },
-  { validation: isNumber, element: document.getElementById('phone-number') as HTMLInputElement },
-  { validation: () => true, element: document.getElementById('address') as HTMLInputElement }
+  { validation: isPhoneNumber, element: document.getElementById('phone-number') as HTMLInputElement },
+  { validation: isNotEmpty, element: document.getElementById('address') as HTMLInputElement }
 ]
 
 const doctorInput = document.getElementById('doctor')
 const dateInput = document.getElementById('date') as HTMLSelectElement
 const timeInput = document.getElementById('time') as HTMLSelectElement
 const inputNumber = document.querySelectorAll<HTMLInputElement>('input[data-type="number"]')
+const inputPhoneNumber = document.querySelectorAll<HTMLInputElement>('input[data-type="phone-number"]')
 const form = document.querySelector('form')
 
 
@@ -34,13 +37,13 @@ cacheInputValue.forEach(({ element, validation }) => {
   if (!element.value) {
     const key = 'laravel-clinic:' + element.id + '-input'
 
-    element.oninput = (event: Event) => {
-      localStorage.setItem(key, (event.target as HTMLInputElement).value)
+    element.oninput = () => {
+      console.log(element.value)
+      localStorage.setItem(key, element.value)
     }
 
     const savedValue = localStorage.getItem(key)
-    if (validation(savedValue)) element.value = savedValue.slice(0, element.maxLength)
-    else localStorage.removeItem(key)
+    if (validation(savedValue)) element.value = savedValue
   }
 })
 
@@ -55,7 +58,16 @@ inputNumber.forEach(input => {
   input.onpaste = () => {
     setTimeout(() => {
       input.value = input.value.replace(/\D/g, '')
-    }, 0)
+    })
+  }
+})
+
+inputPhoneNumber.forEach(input => {
+  input.onkeypress = event => {
+    console.log('onkeypress')
+    if (!isPhoneNumber(input.value + event.key)) {
+      event.preventDefault()
+    }
   }
 })
 
@@ -67,13 +79,16 @@ const OptionElement = ({ value, formatedValue = null, disabled = false }) => (
   <option value={value} disabled={disabled}>{formatedValue ?? value}</option>
 )
 const getHumanReadableDate = (unixSeconds: string) => {
-  const _date = new Date(Number(unixSeconds) * 1000)
+  const seconds = Number(unixSeconds.replace('exception', ''))
+  const isException = unixSeconds.includes('exception')
+
+  const _date = new Date(Number(seconds) * 1000)
   const date = _date.getDate()
   const day = _date.toLocaleString('id-ID', { weekday: 'long' })
   const month = _date.toLocaleString('id-ID', { month: 'long' })
   const year = _date.getFullYear()
 
-  return `${day}, ${date} ${month} ${year}`
+  return `${day}, ${date} ${month} ${year} ${isException ? '- Conflict' : ''}`
 }
 
 let firstRenderDate = true
@@ -114,8 +129,11 @@ const showDateInputOptions = (index: number) => {
     }
   }
   else {
-    placeholder.selected = true
-    timeInputPlaceholder.selected = true
+    // gatau kenapa kalo gapake settimeout ga keselect
+    setTimeout(() => {
+      placeholder.selected = true
+      timeInputPlaceholder.selected = true
+    })
   }
 }
 
@@ -170,8 +188,10 @@ dateInput.onchange = event => {
     }
   }
   else {
-    if (selectedWorkingSchedule.length === 1) firstOption.selected = true
-    else timeInputPlaceholder.selected = true
+    setTimeout(() => {
+      if (selectedWorkingSchedule.length === 1) firstOption.selected = true
+      else timeInputPlaceholder.selected = true
+    })
   }
 }
 

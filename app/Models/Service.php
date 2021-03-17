@@ -32,7 +32,7 @@ class Service extends Model
     use HasFactory;
     use SoftDeletes;
 
-    public $fillable = ['name', 'display_order'];
+    public $guarded = ['deleted_at'];
     public $timestamps = false;
 
     public function doctorService()

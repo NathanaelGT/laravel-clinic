@@ -3,57 +3,60 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Conflict;
 use App\Models\DoctorService;
+use App\Models\DoctorWorktime;
 use App\Models\Service;
-use App\Models\ServiceAppointment;
-use Carbon\Carbon;
 
 class DoctorController extends Controller
 {
     public function list()
     {
-        $conflicts = Conflict::with('serviceAppointment')->get();
-
-        foreach ($conflicts as $conflict) {
-            $conflictDate = Carbon::parse($conflict->serviceAppointment->date);
-            if ($conflictDate->isPast()) $conflict->delete();
-        }
-        $hasConflict = ServiceAppointment::where('date', '>', Carbon::today())->has('conflict')->exists();
+        $hasConflict = DoctorWorktime::hasConflict();
 
         $services = Service::with([
-            'doctorService' => fn($query) => $query->orderBy('display_order'),
-            'doctorService.doctorWorktime'
+            'doctorService' => function ($query) {
+                $query->orderBy('display_order');
+            },
+            'doctorService.doctorWorktime' => function ($query) {
+                $query->whereNotNull('active_date');
+                $query->orderBy('time_start');
+            },
+            'doctorService.doctorWorktime.replacedWith'
         ])
             ->orderBy('display_order')
-            ->get()
-            ->toArray();
+            ->get();
 
         $ids = [];
-        $data = array_reduce($services, function($carry, $service) use (&$ids) {
-            $serviceName = $service['name'];
-            $array = &$carry[$serviceName];
+        $data = $services->reduce(function ($carry, Service $service) use (&$ids) {
+            $serviceName = $service->name;
 
-            $array = [];
-            $ids[$serviceName] = $service['id'];
+            $schedule = $service->doctorService->reduce(
+                function ($carry, DoctorService $doctorService) use ($serviceName, &$ids) {
+                    $ids["$serviceName.{$doctorService->doctor_name}"] = $doctorService->id;
 
-            $array = array_reduce(
-                $service['doctor_service'],
-                function($carry, $doctorService) use ($serviceName, &$ids) {
-                    $ids["$serviceName.{$doctorService['doctor_name']}"] = $doctorService['id'];
-
-                    $carry[$doctorService['doctor_name']] = array_reduce(
-                        $doctorService['doctor_worktime'],
-                        function ($carry, $schedule) {
-                            $array = &$carry[$schedule['day']];
+                    $carry[$doctorService->doctor_name] = $doctorService->doctorWorktime->reduce(
+                        function ($carry, DoctorWorktime $doctorWorktime) {
                             $timeAndQuota = [
-                                'id' => $schedule['id'],
-                                'time' => $schedule['time_start'] . ' - ' . $schedule['time_end'],
-                                'quota' => $schedule['quota'],
-                                'activeDate' => Carbon::parse($schedule['active_date']),
-                                'deletedAt' => $schedule['deleted_at']
+                                'id' => $doctorWorktime->id,
+                                'time' => $doctorWorktime->time_start . ' - ' . $doctorWorktime->time_end,
+                                'quota' => $doctorWorktime->quota,
+                                'activeDate' => $doctorWorktime->active_date,
+                                'deletedAt' => $doctorWorktime->deleted_at,
+                                'replacedWith' => null
                             ];
 
+                            if (!is_null($doctorWorktime->replacedWith)) {
+                                $doctorWorktime = $doctorWorktime->replacedWith;
+                                $timeAndQuota['replacedWith'] = [
+                                    'id' => $doctorWorktime->id,
+                                    'time' => $doctorWorktime->time_start . ' - ' . $doctorWorktime->time_end,
+                                    'quota' => $doctorWorktime->quota,
+                                    'activeDate' => $doctorWorktime->active_date,
+                                    'deletedAt' => $doctorWorktime->deleted_at,
+                                ];
+                            }
+
+                            $array = &$carry[$doctorWorktime->day];
                             if (isset($array)) array_push($array, $timeAndQuota);
                             else $array = [$timeAndQuota];
                             return $carry;
@@ -62,8 +65,15 @@ class DoctorController extends Controller
                     return $carry;
                 }
             );
+
+            // ada kemungkinan null kalo semua jadwal dokternya dihapus
+            if ($schedule) {
+                $ids[$serviceName] = $service->id;
+                $carry[$serviceName] = $schedule;
+            }
+
             return $carry;
-        });
+        }, []);
 
         return view('admin.doctor-list', compact('data', 'ids', 'hasConflict'));
     }

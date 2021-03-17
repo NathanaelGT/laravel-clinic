@@ -30,7 +30,7 @@ class ApiToken
         $cookie = Crypt::decryptString($cookie);
         $cookie = explode('|', $cookie)[1];
 
-        if (!User::whereToken($cookie)->first()) {
+        if (!User::whereToken($cookie)->exists()) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Forbidden'

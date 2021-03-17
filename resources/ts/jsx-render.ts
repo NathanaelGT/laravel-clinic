@@ -1,6 +1,10 @@
 declare global {
   interface Window {
-    dom: (tag: any, attributes: any, ...children: any) => HTMLElement,
+    dom: (
+      tag: string | ((attributes: Object) => any),
+      attributes: Object,
+      ...children: any[]
+    ) => HTMLElement,
     registerRender: (parent: HTMLElement | Element) => DOMElement,
   }
 
@@ -14,12 +18,19 @@ declare global {
 
 export default null
 
-const getFragment = (children: any, element: HTMLElement, fragment = document.createDocumentFragment()) => {
-  children.forEach((child: any) => {
+const getFragment = (
+  children: any[],
+  element: HTMLElement,
+  fragment = document.createDocumentFragment()
+) => {
+  children.forEach(child => {
     if (child instanceof HTMLElement) fragment.appendChild(child)
-    else if (typeof child === 'string' || typeof child === 'number')
-      fragment.appendChild(document.createTextNode(child.toString()))
-    else if (Array.isArray(child)) getFragment(child, element, fragment)
+    else if (['string', 'number'].includes(typeof child)) {
+      fragment.appendChild(document.createTextNode(String(child)))
+    }
+    else if (Array.isArray(child)) {
+      getFragment(child, element, fragment)
+    }
     else if (process.env.MIX_DEBUG) {
       switch (typeof child) {
         case 'boolean':
@@ -28,26 +39,43 @@ const getFragment = (children: any, element: HTMLElement, fragment = document.cr
         default:
           console.error('not appendable', element, child)
           console.trace()
+          break
       }
     }
   })
   return fragment
 }
 
-window.dom = (tag: any, attributes: any, ...children: any) => {
+window.dom = (tag, attributes, ...children) => {
   if (typeof tag === 'function') return tag(attributes || {})
 
-  if (attributes?.className)
-    attributes.className = attributes.className.replaceAll('undefined', '').replaceAll('false', '').trim()
+  if (attributes?.['className']) {
+    const className = String(attributes['className']).replaceAll('undefined', '').replaceAll('false', '').trim()
+    if (className) attributes['className'] = className
+  }
 
   const element = document.createElement(tag) as HTMLElement
-  if (attributes?.dangerouslySetInnerHTML) element.innerHTML = attributes.dangerouslySetInnerHTML
+  if (attributes?.['dangerouslySetInnerHTML']) {
+    element.innerHTML = attributes['dangerouslySetInnerHTML']
+  }
+
+  const attr = {}
+  if (attributes) {
+    Object.entries(attributes).forEach(([key, value]) => {
+      if (key.startsWith('data-')) {
+        element.setAttribute(key, value)
+      }
+      else attr[key] = value
+    })
+  }
+  Object.assign(element, attr)
+
   element.appendChild(getFragment(children, element))
-  Object.assign(element, attributes)
+
   return element
 }
 
-window.registerRender = (parent: HTMLElement | Element) => {
+window.registerRender = parent => {
   parent['render'] = (newChild: HTMLElement) => {
     const oldChild = parent['DOMchildNodes']
 

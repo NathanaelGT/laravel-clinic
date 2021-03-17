@@ -26,7 +26,7 @@ class DisplayOrderController extends Controller
             return response()->json(['status' => 'warning', 'message' => 'Tidak ada data yang berubah']);
         }
 
-        \DB::transaction(function() use ($request) {
+        \DB::transaction(function () use ($request) {
             foreach ($request->order as $index => $id) {
                 $doctorService = DoctorService::find($id);
                 if ($doctorService->display_order !== $index) $doctorService->update(['display_order' => $index]);
@@ -38,20 +38,20 @@ class DisplayOrderController extends Controller
 
     public function reorderService(UpdateDisplayOrderRequest $request)
     {
-        $servicesId = Service::orderBy('display_order')->pluck('id');
+        $servicesId = Service::has('doctorService')->orderBy('display_order')->pluck('id');
         $doctorServicesIdArray = $servicesId->toArray();
         $order = $request->order;
         sort($doctorServicesIdArray);
         sort($order);
 
         if ($doctorServicesIdArray !== $order) {
-            return response()->json(['status' => 'error', 'message' => 'Data yang diberikan tidak sesuai']);
+            return response()->json(['status' => 'error', 'message' => 'Data yang diberikan tidak sesuai', 'asd' => [$doctorServicesIdArray, $order]]);
         }
         elseif ($servicesId === $request->order) {
             return response()->json(['status' => 'warning', 'message' => 'Tidak ada data yang berubah']);
         }
 
-        \DB::transaction(function() use ($request) {
+        \DB::transaction(function () use ($request) {
             foreach ($request->order as $index => $id) {
                 $service = Service::find($id);
                 if ($service->display_order !== $index) $service->update(['display_order' => $index]);

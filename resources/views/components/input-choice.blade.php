@@ -6,7 +6,13 @@
 
   <div class="py-1">
     <label for="{{ $kebab }}">{{ $data['placeholder'] }}</label>
-    <select class="form-select @error($kebab) is-invalid @enderror" id="{{ $kebab }}" name="{{ $kebab }}">
+    <select
+      class="form-select @if (Session::has($kebab)) is-invalid @enderror"
+      {{-- biar gambar error dikanan bawahnya engga terlalu mepet --}}
+      @if (Session::has($kebab)) style="background-position-x: calc(100% - 10.5px), calc(100% - 30px)" @enderror
+      id="{{ $kebab }}"
+      name="{{ $kebab }}"
+    >
       <option @if (!$data['selected']) selected @endif hidden disabled aria-hidden>
         Pilih {{ Str::lower($data['placeholder']) }}
       </option>
@@ -23,9 +29,10 @@
     </select>
 
     <span class="form-text text-danger">
-      <strong>
-        {!! Session::get($kebab) ?? '&nbsp;' !!}
-      </strong>
+      @if (Session::has($kebab))
+      <strong>{{ Session::pull($kebab) }}</strong>
+      @endif
+      &nbsp;
     </span>
   </div>
 @endif

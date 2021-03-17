@@ -17,10 +17,9 @@ Content-Type: application/json
 }
 
 ###
-POST http://127.0.0.1:8000/api/merge
+POST http://127.0.0.1:8000/api/reorderService
 Content-Type: application/json
 
 {
-  "first": 74,
-  "second": 71
+  "order": [1, 2]
 }

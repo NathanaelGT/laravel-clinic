@@ -3,10 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Helpers;
+use App\Http\Requests\StoreAppointmentRequest;
+use App\Models\AppointmentHistory;
 use App\Models\DoctorService;
 use App\Models\Patient;
-use App\Models\PatientAppointment;
-use App\Models\ServiceAppointment;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
@@ -25,13 +25,14 @@ class PatientRegistrationController extends Controller
         return view('registration', compact('service', 'doctors', 'schedules', 'formAction', 'formMethod'));
     }
 
-    public function store(Request $request)
+    public function store(StoreAppointmentRequest $request)
     {
-        $date = Carbon::parse((int) $request->date)->addHours(8);
+        // dd($request->validated());
+        $date = Carbon::parse((int) $request->date)->timezone(config('app.timezone'));
         $dayName = $date->dayName;
 
         $serviceName = explode('?layanan=', URL::previous())[1];
-        $service = DoctorService::with(['doctorWorktime' => function($query) use ($dayName) {
+        $service = DoctorService::with(['doctorWorktime' => function ($query) use ($dayName) {
             $query->where('day', $dayName);
         }])->whereDoctorName($request->doctor)->first();
 
@@ -42,36 +43,41 @@ class PatientRegistrationController extends Controller
         ];
 
         if (!$service) {
-            $doctorServices = DoctorService::with(['service' => function($query) use ($serviceName) {
-                $query->where('name', $serviceName);
-            }])->pluck('doctor_name')->toArray();
-
-            $message = "Layanan Dr. $request->doctor baru saja dihapus, harap pilih jadwal lain";
-            if (sizeof($doctorServices) > 2) {
-                $lastDoctor = array_pop($doctorServices);
-                array_push($doctorServices, "dan $lastDoctor");
-                $message .= '. Alternatif lainnya: ' . implode(', ', $doctorServices);
+            $doctor = DoctorService::whereDoctorName($request->doctor)->withTrashed()->first(['service_id']);
+            if ($doctor) {
+                $doctorServices = DoctorService::whereServiceId($doctor->service_id)
+                    ->pluck('doctor_name')
+                    ->toArray();
             }
-            else if (sizeof($doctorServices)) {
-                $message .= '. Alternatif lainnya: ' . implode(', ', $doctorServices);
+
+            $message = "Layanan Dr. $request->doctor ";
+            $message .= $doctor ? 'baru saja dihapus' : 'tidak dapat ditemukan';
+            $message .= ', harap pilih jadwal lain';
+
+            if (isset($doctorServices)) {
+                if (sizeof($doctorServices) > 2) {
+                    $lastDoctor = array_pop($doctorServices);
+                    array_push($doctorServices, "dan $lastDoctor");
+                    $message .= '. Alternatif yang tersedia: ' . implode(', ', $doctorServices);
+                }
+                else if (sizeof($doctorServices)) {
+                    $message .= '. Alternatif yang tersedia: ' . implode(', ', $doctorServices);
+                }
             }
 
             return $this->redirectInvalid($serviceName, $seleted, 'doctor', $message);
         }
 
-        $slots = [];
-        $doctorWorktimeId = 0;
+        $patientAppointment = explode(' - ', $request->time);
+        if (sizeof($patientAppointment) !== 2) {
+            return $this->redirectInvalid($serviceName, $seleted, 'time', 'Waktu tidak valid');
+        }
+        $patientStart = Helpers::timeToNumber($patientAppointment[0]);
+        $patientEnd = Helpers::timeToNumber($patientAppointment[1]);
+
         $found = false;
         foreach ($service->doctorWorktime as $schedule) {
-            $patientAppointment = explode(' - ', $request->time);
-            if (sizeof($patientAppointment) !== 2) {
-                return $this->redirectInvalid($serviceName, $seleted, 'time', 'Waktu tidak valid');
-            }
-
-            $quota = $schedule->quota;
-            $patientStart = Helpers::timeToNumber($patientAppointment[0]);
-            $patientEnd = Helpers::timeToNumber($patientAppointment[1]);
-            if ($patientEnd - $patientStart !== (int) $quota) continue;
+            if ($patientEnd - $patientStart !== (int) $schedule->quota) continue;
             $found = true;
 
             $scheduleStart = Helpers::timeToNumber($schedule->time_start);
@@ -85,45 +91,43 @@ class PatientRegistrationController extends Controller
                 );
             }
 
-            $doctorWorktimeId = $schedule->id;
+            [$timeStart, $timeEnd] = explode(' - ', $request->time);
+            $appointment = AppointmentHistory::whereDate('date', $date)
+                ->whereDoctorWorktimeId($schedule->id)
+                ->whereTimeStart($timeStart)
+                ->whereTimeEnd($timeEnd)
+                ->exists();
 
-            $serviceAppointment = ServiceAppointment::firstOrNew([
-                'doctor_worktime_id' => $doctorWorktimeId,
-                'date' => $date
-            ]);
-            if ($serviceAppointment->exists) $slots = $serviceAppointment->quota;
-
-            $index = 0;
-            $patientId = 0;
-            for ($time = $scheduleStart; $time < $scheduleEnd; $time += $quota) {
-                if ($time === $patientStart) {
-                    $patientId = Patient::updateOrCreate([
-                        'name' => $request->name,
-                        'nik' => $request->nik,
-                    ], [
-                        'phone_number' => $request->input('phone-number'),
-                        'address' => $request->address,
-                    ])->id;
-
-                    if (!isset($slots[$index]) || $slots[$index] === '0') $slots[$index] = $patientId;
-                    else {
-                        return $this->redirectInvalid(
-                            $serviceName,
-                            $seleted,
-                            'time',
-                            'Sesi ini baru saja dipesan orang lain, harap pilih jam praktek lain'
-                        );
-                    }
-                }
-                elseif (!$serviceAppointment->exists) $slots[$index] = 0;
-                $index++;
+            if ($appointment) {
+                return $this->redirectInvalid(
+                    $serviceName,
+                    $seleted,
+                    'time',
+                    'Sesi ini baru saja dipesan orang lain, harap pilih jam praktek lain'
+                );
             }
-            $serviceAppointment->quota = $slots;
-            $serviceAppointment->save();
 
-            PatientAppointment::create([
+            $patientId = Patient::updateOrCreate([
+                'name' => $request->name,
+                'nik' => $request->nik,
+            ], [
+                'phone_number' => $request->input('phone-number'),
+                'address' => $request->address,
+            ])->id;
+
+            AppointmentHistory::create([
+                'date' => $date,
+                'doctor' => $request->doctor,
+                'service' => $serviceName,
+                'doctor_service_id' => $service->id,
+                'time_start' => $timeStart,
+                'time_end' => $timeEnd,
+                'doctor_worktime_id' => $schedule->id,
+                'patient_name' => $request->name,
+                'patient_nik' => $request->nik,
+                'patient_phone_number' => $request->input('phone-number'),
+                'patient_address' => $request->address,
                 'patient_id' => $patientId,
-                'service_appointment_id' => $serviceAppointment->id,
                 'status' => 'Menunggu'
             ]);
 
@@ -140,14 +144,13 @@ class PatientRegistrationController extends Controller
         }
 
         return redirect(route('home'))->with([
-            'message' => "
-                Janji temu berhasil dibuat<br/><br/>
-                Info:<br/>
-                Nama: $request->name<br/>
-                NIK: $request->nik<br/>
-                No. HP: {$request->input('phone-number')}<br/>
-                Alamat: $request->address
-            "
+            'message' => 
+                'Janji temu berhasil dibuat<br/><br/>' .
+                'Info:<br/>' .
+                'Nama: ' . htmlspecialchars($request->name) . '<br/>' .
+                'NIK: ' . htmlspecialchars($request->nik) . '<br/>' .
+                'No. HP: ' . htmlspecialchars($request->input('phone-number')) . '<br/>' .
+                'Alamat: ' . htmlspecialchars($request->address)
         ]);
     }
 

@@ -208,7 +208,7 @@ const data = {
           }
         })
         .catch(err => {
-          alert(err)
+          alert(JSON.stringify(err))
           console.error(err)
         })
         .finally(() => {

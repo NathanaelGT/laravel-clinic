@@ -81,16 +81,27 @@ class Helpers
 
 
     public static $serviceSchedule = null;
-    public static function getSchedule(string $serviceName)
+    public static function getSchedule(string $serviceName, int $exceptionId = null)
     {
         $tomorrow = Carbon::tomorrow();
         $today = Carbon::createMidnightDate();
         Helpers::$serviceSchedule = Service::with([
-            'doctorService.doctorWorktime' => function($query) use ($today) {
+            'doctorService.doctorWorktime' => function ($query) use ($today, $exceptionId) {
+                $query->whereNull('replaced_with_id');
+                $query->OrWhereNull('deleted_at');
+
                 $query->where('active_date', '<=', $today);
+
+                if ($exceptionId) {
+                    $query->orWhere('id', $exceptionId);
+                }
             },
-            'doctorService.doctorWorktime.serviceAppointment'
+            'doctorService.doctorWorktime.appointmentHistory' => function ($query) {
+                // $query->where();
+                $query->orderBy('time_start');
+            }
         ])->whereName($serviceName)->firstOrFail();
+
         $doctors = Helpers::$serviceSchedule->doctorService->all();
 
         $days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
@@ -118,23 +129,29 @@ class Helpers
                     $start = Helpers::timeToNumber($schedule['time_start']);
                     $end = Helpers::timeToNumber($schedule['time_end']);
 
-                    $i = 0;
+                    $taken = [];
+                    foreach ($schedule->appointmentHistory as $appointment) {
+                        $timeStart = $appointment['time_start'];
+                        $timeStart = Helpers::timeToNumber($timeStart);
+                        $taken[$timeStart] = true;
+                    }
+
                     $times = [];
                     for ($time = $start; $time < $end; $time += $quota) {
-                        if (
-                            isset($schedule['serviceAppointment'][0]) &&
-                            $schedule['serviceAppointment'][0]['quota'][$i++]
-                        ) continue;
+                        if (isset($taken[$time])) continue;
                         array_push($times, Helpers::numberToTimeFormat($time, $time + $quota));
                     }
 
-                    $day = &$schedules[$index][$schedule['day']];
+                    $time = $schedule['day'];
+                    if ($schedule['id'] === $exceptionId) $time .= 'exception';
+
+                    $day = &$schedules[$index][$time];
 
                     if (sizeof($times)) {
-                        if (!isset($day)) $day = $times;
-                        else $day = array_merge($day, $times);
+                        if (isset($day)) $day = array_merge($day, $times);
+                        else $day = $times;
                     }
-                    else unset($schedules[$index][$schedule['day']]);
+                    else unset($schedules[$index][$time]);
                 }
             }
         }

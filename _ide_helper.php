@@ -15144,6 +15144,110 @@
      
 }
 
+    namespace HTMLMin\HTMLMin\Facades { 
+            /**
+     * This is the htmlmin facade class.
+     *
+     * @author Graham Campbell <graham@alt-three.com>
+     */ 
+        class HTMLMin {
+                    /**
+         * Get the minified blade.
+         *
+         * @param string $value
+         * @return string 
+         * @static 
+         */ 
+        public static function blade($value)
+        {
+                        /** @var \HTMLMin\HTMLMin\HTMLMin $instance */
+                        return $instance->blade($value);
+        }
+                    /**
+         * Get the minified css.
+         *
+         * @param string $value
+         * @return string 
+         * @static 
+         */ 
+        public static function css($value)
+        {
+                        /** @var \HTMLMin\HTMLMin\HTMLMin $instance */
+                        return $instance->css($value);
+        }
+                    /**
+         * Get the minified js.
+         *
+         * @param string $value
+         * @return string 
+         * @static 
+         */ 
+        public static function js($value)
+        {
+                        /** @var \HTMLMin\HTMLMin\HTMLMin $instance */
+                        return $instance->js($value);
+        }
+                    /**
+         * Get the minified html.
+         *
+         * @param string $value
+         * @return string 
+         * @static 
+         */ 
+        public static function html($value)
+        {
+                        /** @var \HTMLMin\HTMLMin\HTMLMin $instance */
+                        return $instance->html($value);
+        }
+                    /**
+         * Return the blade minifier instance.
+         *
+         * @return \HTMLMin\HTMLMin\Minifiers\BladeMinifier 
+         * @static 
+         */ 
+        public static function getBladeMinifier()
+        {
+                        /** @var \HTMLMin\HTMLMin\HTMLMin $instance */
+                        return $instance->getBladeMinifier();
+        }
+                    /**
+         * Return the css minifier instance.
+         *
+         * @return \HTMLMin\HTMLMin\Minifiers\CssMinifier 
+         * @static 
+         */ 
+        public static function getCssMinifier()
+        {
+                        /** @var \HTMLMin\HTMLMin\HTMLMin $instance */
+                        return $instance->getCssMinifier();
+        }
+                    /**
+         * Return the js minifier instance.
+         *
+         * @return \HTMLMin\HTMLMin\Minifiers\JsMinifier 
+         * @static 
+         */ 
+        public static function getJsMinifier()
+        {
+                        /** @var \HTMLMin\HTMLMin\HTMLMin $instance */
+                        return $instance->getJsMinifier();
+        }
+                    /**
+         * Return the html minifier instance.
+         *
+         * @return \HTMLMin\HTMLMin\Minifiers\HtmlMinifier 
+         * @static 
+         */ 
+        public static function getHtmlMinifier()
+        {
+                        /** @var \HTMLMin\HTMLMin\HTMLMin $instance */
+                        return $instance->getHtmlMinifier();
+        }
+         
+    }
+     
+}
+
     namespace Facade\Ignition\Facades { 
             /**
      * Class Flare.
@@ -15379,110 +15483,6 @@
         {
                         /** @var \Facade\FlareClient\Flare $instance */
                         return $instance->group($groupName, $properties);
-        }
-         
-    }
-     
-}
-
-    namespace HTMLMin\HTMLMin\Facades { 
-            /**
-     * This is the htmlmin facade class.
-     *
-     * @author Graham Campbell <graham@alt-three.com>
-     */ 
-        class HTMLMin {
-                    /**
-         * Get the minified blade.
-         *
-         * @param string $value
-         * @return string 
-         * @static 
-         */ 
-        public static function blade($value)
-        {
-                        /** @var \HTMLMin\HTMLMin\HTMLMin $instance */
-                        return $instance->blade($value);
-        }
-                    /**
-         * Get the minified css.
-         *
-         * @param string $value
-         * @return string 
-         * @static 
-         */ 
-        public static function css($value)
-        {
-                        /** @var \HTMLMin\HTMLMin\HTMLMin $instance */
-                        return $instance->css($value);
-        }
-                    /**
-         * Get the minified js.
-         *
-         * @param string $value
-         * @return string 
-         * @static 
-         */ 
-        public static function js($value)
-        {
-                        /** @var \HTMLMin\HTMLMin\HTMLMin $instance */
-                        return $instance->js($value);
-        }
-                    /**
-         * Get the minified html.
-         *
-         * @param string $value
-         * @return string 
-         * @static 
-         */ 
-        public static function html($value)
-        {
-                        /** @var \HTMLMin\HTMLMin\HTMLMin $instance */
-                        return $instance->html($value);
-        }
-                    /**
-         * Return the blade minifier instance.
-         *
-         * @return \HTMLMin\HTMLMin\Minifiers\BladeMinifier 
-         * @static 
-         */ 
-        public static function getBladeMinifier()
-        {
-                        /** @var \HTMLMin\HTMLMin\HTMLMin $instance */
-                        return $instance->getBladeMinifier();
-        }
-                    /**
-         * Return the css minifier instance.
-         *
-         * @return \HTMLMin\HTMLMin\Minifiers\CssMinifier 
-         * @static 
-         */ 
-        public static function getCssMinifier()
-        {
-                        /** @var \HTMLMin\HTMLMin\HTMLMin $instance */
-                        return $instance->getCssMinifier();
-        }
-                    /**
-         * Return the js minifier instance.
-         *
-         * @return \HTMLMin\HTMLMin\Minifiers\JsMinifier 
-         * @static 
-         */ 
-        public static function getJsMinifier()
-        {
-                        /** @var \HTMLMin\HTMLMin\HTMLMin $instance */
-                        return $instance->getJsMinifier();
-        }
-                    /**
-         * Return the html minifier instance.
-         *
-         * @return \HTMLMin\HTMLMin\Minifiers\HtmlMinifier 
-         * @static 
-         */ 
-        public static function getHtmlMinifier()
-        {
-                        /** @var \HTMLMin\HTMLMin\HTMLMin $instance */
-                        return $instance->getHtmlMinifier();
         }
          
     }
@@ -18711,8 +18711,8 @@ namespace  {
             class Validator extends \Illuminate\Support\Facades\Validator {}
             class View extends \Illuminate\Support\Facades\View {}
             class Debugbar extends \Barryvdh\Debugbar\Facade {}
-            class Flare extends \Facade\Ignition\Facades\Flare {}
             class HTMLMin extends \HTMLMin\HTMLMin\Facades\HTMLMin {}
+            class Flare extends \Facade\Ignition\Facades\Flare {}
      
 }
 

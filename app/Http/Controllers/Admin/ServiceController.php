@@ -9,8 +9,7 @@ class ServiceController extends Controller
 {
     public function create()
     {
-        $services = Service::all(['name'])->toArray();
-        $services = array_column($services, 'name');
+        $services = Service::all(['name'])->pluck('name');
 
         return view('admin.new-service', compact('services'));
     }

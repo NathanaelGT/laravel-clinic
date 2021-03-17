@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Api;
 
+use App\Rules\TimeValidation;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateServiceRequest extends FormRequest
@@ -27,8 +28,9 @@ class UpdateServiceRequest extends FormRequest
             'doctorServiceId' => 'integer|min:1',
             'day' => 'required_with:doctor_service_id|in:Senin,Selasa,Rabu,Kamis,Jumat,Sabtu',
             'quota' => 'required|integer|min:1',
-            'timeStart' => 'required|string|size:5',
-            'timeEnd' => 'required|string|size:5'
+            'timeStart' => ['required', new TimeValidation()],
+            'timeEnd' => ['required', new TimeValidation()],
+            'skipPending' => 'boolean'
         ];
     }
 }

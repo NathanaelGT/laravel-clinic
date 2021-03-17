@@ -35,7 +35,7 @@ $day-width: 59px;
 }
 
 .service-info {
-  white-space: nowrap;
+  white-space: normal;
 }
 
 .doctors-name > span {
@@ -111,4 +111,8 @@ $day-width: 59px;
     display: inline-block;
     min-width: $day-width !important;
   }
+}
+
+.schedule > :nth-child(2) > :nth-last-child(n + 3)::after {
+  content: ",";
 }

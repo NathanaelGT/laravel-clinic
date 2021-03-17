@@ -27,15 +27,16 @@
             'placeholder' => 'NIK',
             'name' => 'nik',
             'value' => $patient['nik'] ?? '',
-            'type' => 'number',
+            'data-type' => 'number',
             'max' => 15
           ],
           [
             'placeholder' => 'No. HP',
             'name' => 'phone-number',
             'value' => $patient['phone_number'] ?? '',
-            'type' => 'number',
-            'max' => 15
+            'type' => 'tel',
+            'data-type' => 'phone-number',
+            'pattern' => '[0-9]{3,5}[-\s\.]?[0-9]{3,5}[-\s\.]?[0-9]{3,5}'
           ],
           [
             'placeholder' => 'Alamat',

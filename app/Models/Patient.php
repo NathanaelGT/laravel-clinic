@@ -13,8 +13,8 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $nik
  * @property string $phone_number
  * @property string $address
- * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\PatientAppointment[] $patientAppointment
- * @property-read int|null $patient_appointment_count
+ * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\AppointmentHistory[] $appointmentHistory
+ * @property-read int|null $appointment_history_count
  * @method static \Illuminate\Database\Eloquent\Builder|Patient newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|Patient newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|Patient query()
@@ -28,11 +28,11 @@ use Illuminate\Database\Eloquent\Model;
 class Patient extends Model
 {
     use HasFactory;
-    public $fillable = ['name', 'nik', 'phone_number', 'address'];
+    public $guarded = [];
     public $timestamps = false;
 
-    public function patientAppointment()
+    public function appointmentHistory()
     {
-        return $this->hasMany(PatientAppointment::class);
+        return $this->hasMany(AppointmentHistory::class);
     }
 }

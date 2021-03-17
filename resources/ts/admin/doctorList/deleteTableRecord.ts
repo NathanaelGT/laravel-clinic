@@ -7,5 +7,5 @@ export default (rowElement: HTMLElement) => {
       trElement.classList.add('text-secondary');
       (trElement.lastElementChild.firstElementChild as HTMLFormElement).submit()
     }
-  }, 0)
+  })
 }

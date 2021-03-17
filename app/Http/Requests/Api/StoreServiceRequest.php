@@ -33,7 +33,7 @@ class StoreServiceRequest extends FormRequest
             'quota.*' => 'required|integer|min:1',
             'day' => 'required|array|min:1',
             'day.*' => 'required|array|min:1',
-            'day.*.*' => 'required|string|in:Senin,Selasa,Rabu,Kamis,Jumat,Sabtu'
+            'day.*.*' => 'required|string|in:Senin,Selasa,Rabu,Kamis,Jumat,Sabtu,Minggu'
         ];
     }
 }

@@ -1,11 +1,15 @@
-type method = 'GET' | 'POST' | 'PUT' | 'DELETE'
+interface Fetch {
+  endpoint: string,
+  method: 'GET' | 'POST' | 'PUT' | 'DELETE',
+  data?: Object,
+  callback?: (res: any) => any,
+  fail?: (message: string) => any
+}
 
-export default (
-  endpoint: string, method: method, data: object = {},
-  callback: (res: any) => any = null, fail: (message: string) => any = null
-) => {
+export default ({ endpoint, method, data, callback, fail }: Fetch) => {
   let ok: boolean
   let message: string
+
   fetch(window.location.origin + '/api/' + endpoint, {
     method,
     headers: { 'Content-Type': 'application/json' },
@@ -25,22 +29,30 @@ export default (
       }
     })
     .then(res => {
-      if (ok && callback) {
-        callback(res)
-      }
+      if (ok) callback?.(res)
       else {
-        if (fail) fail(message)
+        if (message === 'Unauthorized') {
+          return alert('Tidak dapat mengubah jadwal, harap coba login ulang')
+        }
+
+        fail?.(message)
         console.error(message)
 
-        if (res.toLowerCase().includes('<!doctype html>') && confirm('Error terdeteksi, ingin menampilkan HTML?'))
-          document.querySelector('html').innerHTML = res
+        if (
+          res.toLowerCase().includes('<!doctype html>') &&
+          confirm('Error terdeteksi, ingin menampilkan HTML?')
+        ) {
+          document.documentElement.innerHTML = res
+        }
         else console.error(res)
       }
     })
     .catch(err => {
-      if (err.toString() === 'TypeError: Failed to fetch') return alert('Data belum sempat tersimpan')
+      if (err.toString() === 'TypeError: Failed to fetch') {
+        return alert('Data belum sempat tersimpan')
+      }
 
-      if (fail) fail(err.toString())
+      fail?.(err.toString())
       alert(err)
       console.error(err)
     })

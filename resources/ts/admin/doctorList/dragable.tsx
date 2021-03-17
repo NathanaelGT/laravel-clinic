@@ -40,11 +40,17 @@ export default (tableBody: HTMLElement) => {
         })
 
       if (serviceOrder.toString() === newOrder.toString()) return removeOpacityHalf()
-      fetch('reorderService', 'POST', { order: newOrder }, removeOpacityHalf, message => {
-        draggedElement.forEach((element: HTMLTableRowElement) => {
-          element.classList.replace('opacity-half', 'text-danger')
-          element.title = message
-        })
+      fetch({
+        endpoint: 'reorderService',
+        method: 'POST',
+        data: { order: newOrder },
+        callback: removeOpacityHalf,
+        fail: message => {
+          draggedElement.forEach((element: HTMLTableRowElement) => {
+            element.classList.replace('opacity-half', 'text-danger')
+            element.title = message
+          })
+        }
       })
     })
   })
@@ -52,9 +58,9 @@ export default (tableBody: HTMLElement) => {
   let order: number[]
   tableBody.querySelectorAll<HTMLTableRowElement>('tr[data-drag-target]').forEach(schedule => {
     schedule.draggable = true
-    const service = tableBody.querySelector<HTMLTableDataCellElement>(
-      `td[data-drag="${schedule.dataset.dragTarget}"]`
-    ).parentElement
+
+    const selector = `td[data-drag="${schedule.dataset.dragTarget}"]`
+    const service = tableBody.querySelector<HTMLTableDataCellElement>(selector).parentElement
 
     schedule.addEventListener('dragstart', () => {
       draggedElement = [schedule]
@@ -82,11 +88,17 @@ export default (tableBody: HTMLElement) => {
       ))
 
       if (order.toString() === newOrder.toString()) return schedule.classList.remove('opacity-half')
-      fetch('reorderDoctorService/' + schedule.dataset.dragTarget, 'POST', { order: newOrder }, () => {
-        schedule.classList.remove('opacity-half')
-      }, message => {
-        schedule.classList.replace('opacity-half', 'text-danger')
-        schedule.title = message
+      fetch({
+        endpoint: 'reorderDoctorService/' + schedule.dataset.dragTarget,
+        method: 'POST',
+        data: { order: newOrder },
+        callback: () => {
+          schedule.classList.remove('opacity-half')
+        },
+        fail: message => {
+          schedule.classList.replace('opacity-half', 'text-danger')
+          schedule.title = message
+        }
       })
     })
   })

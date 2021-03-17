@@ -15,7 +15,7 @@ interface Props {
   dayValue: string[][]
 }
 
-let per: string | null = ''
+let per: string = null
 export default (data: Props) => {
   const { handleSubmit, errorMessages, currentIndex, getButtonsData } = data
   const updateQuotaValue = (field: 'number' | 'time' | 'per') => (event: Event) => {
@@ -115,7 +115,7 @@ export default (data: Props) => {
       </div>
 
         <div className="d-flex flex-column flex-sm-row justify-content-center">
-          {[['Senin', 'Selasa', 'Rabu'], ['Kamis', 'Jumat', 'Sabtu']].map(days => (
+          {[['Senin', 'Selasa', 'Rabu'], ['Kamis', 'Jumat', 'Sabtu'], ['Minggu']].map(days => (
             <div className="d-flex justify-content-center py-1">
               {days.map(value => (
                 <InlineCheckbox

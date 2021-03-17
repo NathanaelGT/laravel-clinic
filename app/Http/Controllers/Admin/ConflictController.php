@@ -3,67 +3,63 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Conflict;
 use App\Models\DoctorWorktime;
-use App\Models\ServiceAppointment;
 use Carbon\Carbon;
 
 class ConflictController extends Controller
 {
     public function list()
     {
-        $service = 'service_appointments';
-        $conflicts = Conflict::with('serviceAppointment.patientAppointment.patient', 'doctorWorktime.doctorService')
-            ->join($service, "$service.id", '=', 'conflicts.service_appointment_id')
-            ->orderBy("$service.date")
-            ->select('conflicts.*')
+        $doctorWorktimes = DoctorWorktime::whereNotNull('replaced_with_id')
+            ->whereNull('deleted_at')
+            ->with([
+                'replacedWith' => function ($query) {
+                    $query->select(['id', 'time_start', 'time_end', 'quota']);
+                },
+                'doctorService' => function ($query) {
+                    $query->select(['id', 'doctor_name']);
+                },
+                'appointmentHistory' => function ($query) {
+                    $query->whereStatus('Menunggu');
+                    $query->orderBy('time_start');
+                    $query->select(['id', 'date', 'doctor_worktime_id', 'patient_name']);
+                }
+            ])
+            ->withTrashed() //biar conditionnya engga kedouble
             ->get();
 
-        return view('admin.conflict-list', compact('conflicts'));
+        return view('admin.conflict-list', compact('doctorWorktimes'));
     }
 
-    public function closeRegistration(ServiceAppointment $serviceAppointment)
+    public function nextWeek(DoctorWorktime $doctorWorktime)
     {
-        $newQuota = array_map(fn ($value) => $value ?: -1, $serviceAppointment->quota);
-        $serviceAppointment->quota = $newQuota;
-        $serviceAppointment->save();
+        $date = null;
+        $_date = Carbon::tomorrow();
+        while (true) {
+            if ($_date->dayName === $doctorWorktime->day) {
+                $date = $_date;
+                break;
+            }
+            $_date->addDay();
+        }
 
-        return redirect(route('admin@conflict'));
-    }
-
-    public function nextWeek(Conflict $conflict)
-    {
-        \DB::transaction(function() use ($conflict) {
-            $serviceAppointment = $conflict->serviceAppointment;
-            $nextWeek = Carbon::parse($serviceAppointment->date);
-
-            $serviceAppointment->quota = array_map(
-                fn ($value) => $value === -1 ? 0 : $value,
-                $serviceAppointment->quota
-            );
-            $serviceAppointment->save();
-
-            $conflict->doctorWorktime->deleted_at = $nextWeek;
-            $conflict->doctorWorktime->save();
-
-            DoctorWorktime::create([
-                'doctor_service_id' => $conflict->doctorWorktime->doctor_service_id,
-                'quota' => $conflict->quota,
-                'day' => $conflict->doctorWorktime->day,
-                'time_start' => $conflict->time_start,
-                'time_end' => $conflict->time_end,
-                'active_date' => $nextWeek
-            ]);
-
-            $conflict->delete();
+        \DB::transaction(function () use ($doctorWorktime, $date) {
+            DoctorWorktime::find($doctorWorktime->replaced_with_id)->update(['active_date' => $date]);
+            $doctorWorktime->update(['deleted_at' => $date]);
         });
 
         return redirect(route('admin@conflict'));
     }
 
-    public function destroy(Conflict $conflict)
+    public function destroy(DoctorWorktime $doctorWorktime)
     {
-        $conflict->delete();
+        // biar di dalam closure tetap bisa akses
+        $doctorWorktime->load('replacedWith');
+
+        \DB::transaction(function () use ($doctorWorktime) {
+            $doctorWorktime->update(['replaced_with_id' => null]);
+            $doctorWorktime->replacedWith->delete();
+        });
 
         return redirect(route('admin@conflict'));
     }

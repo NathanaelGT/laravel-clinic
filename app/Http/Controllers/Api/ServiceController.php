@@ -2,34 +2,35 @@
 
 namespace App\Http\Controllers\Api;
 
+use \Illuminate\Database\Eloquent\Collection;
 use App\Helpers;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\MergeServiceRequest;
 use App\Http\Requests\Api\StoreServiceRequest;
 use App\Http\Requests\Api\UpdateServiceRequest;
-use App\Models\Conflict;
+use App\Models\AppointmentHistory;
 use App\Models\DoctorService;
 use App\Models\DoctorWorktime;
 use App\Models\Service;
-use App\Models\ServiceAppointment;
 use Carbon\Carbon;
-use Closure;
 use Exception;
 
 class ServiceController extends Controller
 {
     public function store(StoreServiceRequest $request)
     {
-        if (sizeof($request->quota) !== sizeof($request->day))
+        if (sizeof($request->quota) !== sizeof($request->day)) {
             throw new Exception('Invalid quota and day data', 400);
+        }
 
         foreach($request->time as $index => $time) {
             $minutes = Helpers::timeToNumber($time[1]) - Helpers::timeToNumber($time[0]);
-            if ($minutes % $request->quota[$index])
+            if ($minutes % $request->quota[$index]) {
                 throw new Exception('Invalid time and/or quota data', 400);
+            }
         }
 
-        \DB::transaction(function() use ($request) {
+        \DB::transaction(function () use ($request) {
             $serviceName = ucwords(strtolower($request->serviceName));
             $serviceId = Service::firstOrCreate(['name' => $serviceName])->id;
 
@@ -74,27 +75,65 @@ class ServiceController extends Controller
             return response()->json(['status' => 'error', 'message' => $invalidMessage]);
         }
 
+        if ($id === 'new') {
+            $doctorServiceId = $request->doctorServiceId;
+            $day = $request->day;
+        }
+        else {
+            $doctorWorktime = DoctorWorktime::find($id);
+            $doctorServiceId = $doctorWorktime->doctor_service_id;
+            $day = $doctorWorktime->day;
+        }
+
+        // FIXME tambahin where id != draft
+        $conflict = DoctorWorktime::whereDoctorServiceId($doctorServiceId)
+            ->where('id', '!=', $id)
+            ->where('day', $day)
+            ->where(function ($query) use ($request) {
+                $query->where(function ($query) use ($request) {
+                    $query->where('time_start', '>=', $request->timeStart);
+                    $query->where('time_start', '<=', $request->timeEnd);
+                });
+
+                $query->where(function ($query) use ($request) {
+                    $query->where('time_end', '>=', $request->timeStart);
+                    $query->where('time_end', '<=', $request->timeEnd);
+                });
+            })
+            ->first();
+
+        if ($conflict && $conflict->id !== $doctorWorktime?->replaced_with_id) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Jadwal ini berbentrokan dengan jadwal lain'
+            ]);
+        }
+
         // SECTION buat baru
         if ($id === 'new') {
             $newId = DoctorWorktime::insertGetId([
                 'doctor_service_id' => $request->doctorServiceId,
-                'day' => $request->day,
                 'quota' => $quota,
+                'day' => $request->day,
                 'time_start' => $request->timeStart,
                 'time_end' => $request->timeEnd
             ]);
             return response()->json(['status' => 'success', 'newId' => $newId]);
         }
 
-
-        $appointment = ServiceAppointment::with('doctorWorktime')
+        $appointment = AppointmentHistory::with([
+            'doctorWorktime' => function ($query) {
+                $query->orderBy('time_start');
+            },
+            'doctorWorktime.replacedWith'
+        ])
+            ->whereStatus('Menunggu')
             ->whereDoctorWorktimeId($id)
-            ->where('date', '>', Carbon::today())
-            ->first();
+            ->whereDate('date', '>', today())
+            ->get();
 
-        // SECTION kalo quotanya masih belum ada yang booking/belum terdaftar
-        $doctorWorktime = null;
-        if (!$appointment) {
+        // SECTION kalo quotanya masih penuh
+        if ($appointment->isEmpty()) {
             $doctorWorktime = DoctorWorktime::find($id);
 
             if (!$doctorWorktime) {
@@ -103,36 +142,53 @@ class ServiceController extends Controller
                     'message' => 'Data tidak dapat ditemukan'
                 ]);
             }
-        }
-        elseif ($this->quotaIsEmpty($appointment->quota)) {
-            $doctorWorktime = $appointment->doctorWorktime;
-        }
-        if ($doctorWorktime) {
-            $activeDate = Carbon::parse($doctorWorktime->active_date)->minutes(0);
-            $twins = null;
-            if ($activeDate->isFuture()) {
-                $twins = DoctorWorktime::whereDoctorServiceId($doctorWorktime->doctor_service_id)
-                    ->whereQuota($quota)
-                    ->where('day', $doctorWorktime->day)
-                    ->whereTimeStart($request->timeStart)
-                    ->whereTimeEnd($request->timeEnd)
-                    ->whereDate('deleted_at', $activeDate)
-                    ->first();
-            }
+
             $doctorWorktime->update([
+                'quota' => $quota,
+                'time_start' => $request->timeStart,
+                'time_end' => $request->timeEnd,
+                'replaced_with_id' => null
+            ]);
+
+            $doctorWorktime?->replacedWith?->delete();
+
+            return response()->json(['status' => 'success']);
+        }
+
+
+        // SECTION quota yang tersimpan dan yang baru sama, yang beda waktunya
+        // diambil yang pertama, karna pasti sama semua doctorWorktimenya
+        $doctorWorktime = $appointment[0]->doctorWorktime;
+        $conflict = $doctorWorktime->replacedWith;
+        if ($conflict) {
+            if (
+                !($request->skipPending ?? false) &&
+                $quota === $doctorWorktime->quota &&
+                $request->timeStart === $doctorWorktime->time_start &&
+                $request->timeEnd === $doctorWorktime->time_end
+            ) {
+                return response()->json([
+                    'status' => 'pending',
+                    'info' => 'equal'
+                ]);
+            }
+
+            $conflict->update([
                 'quota' => $quota,
                 'time_start' => $request->timeStart,
                 'time_end' => $request->timeEnd
             ]);
 
-            $message = ['status' => 'success'];
-            if ($twins) $message['twinsId'] = $twins->id;
-            return response()->json($message);
+            if ($request->skipPending ?? false) {
+                return response()->json([
+                    'status' => 'success',
+                    'time' => "$request->timeStart - $request->timeEnd",
+                    'quota' => $quota
+                ]);
+            }
+            return response()->json(['status' => 'success']);
         }
 
-
-        // SECTION quota yang tersimpan dan yang baru sama, yang beda waktunya
-        $doctorWorktime = $appointment->doctorWorktime;
         if ($quota === $doctorWorktime->quota) {
             $oldStart = Helpers::timeToNumber($doctorWorktime->time_start);
             $newStart = Helpers::timeToNumber($request->timeStart);
@@ -148,52 +204,31 @@ class ServiceController extends Controller
 
 
             // SECTION antara waktu mulai lebih cepat, waktu selesai lebih lama, atau dua duanya
-            $success = false;
+            $isValid = false;
             if (
                 ($oldStart > $newStart && $newEnd === $oldEnd) ||
                 ($newEnd > $oldEnd && $oldStart === $newStart) ||
                 ($oldStart > $newStart && $newEnd > $oldEnd)
-            ) {
-                $success = true;
-                if ($oldStart > $newStart) {
-                    $this->addSlot($oldStart, $newStart, $appointment, function ($newQuota, $oldQuota) {
-                        return array_merge($newQuota, $oldQuota);
-                    });
-                }
-                if ($newEnd > $oldEnd) {
-                    $this->addSlot($newEnd, $oldEnd, $appointment, function ($newQuota, $oldQuota) {
-                        return array_merge($oldQuota, $newQuota);
-                    });
-                }
-            }
-
+            ) $isValid = true;
 
             // SECTION antara waktu mulainya lebih lama, waktu selesainya lebih cepat, atau dua duanya
             else {
-                $startDifference = $newStart - $oldStart;
-                $endDifference = $oldEnd - $newEnd;
-                $startSlotCount = $startDifference / $request->quota;
-                $endSlotCount = $endDifference / $request->quota;
-
-                $startQuota = $startSlotCount ? array_slice($appointment->quota, 0, $startSlotCount) : [];
-                $endQuota = $endSlotCount ? array_slice($appointment->quota, -$endSlotCount) : [];
-
+                [$firstPatientHour, $lastPatientHour] = $this->getLowestAndHighestHour($appointment);
 
                 // SECTION quota yang bakal "dihilangin" belum ada yang booking
-                if ($this->quotaIsEmpty($startQuota) && $this->quotaIsEmpty($endQuota)) {
-                    $success = true;
-                    $appointment->quota = array_slice(
-                        $appointment->quota,
-                        $startSlotCount,
-                        -$endSlotCount ?: sizeof($appointment->quota)
-                    );
+                if ($newStart < $firstPatientHour && $newEnd > ($lastPatientHour + $quota)) {
+                    $isValid = true;
                 }
             }
 
-            if ($success) {
-                $appointment->doctorWorktime->time_start = $request->timeStart;
-                $appointment->doctorWorktime->time_end = $request->timeEnd;
-                $appointment->push();
+            if ($isValid) {
+                $doctorWorktime->update([
+                    'time_start' => $request->timeStart,
+                    'time_end' => $request->timeEnd,
+                    'replaced_with_id' => null
+                ]);
+
+                $doctorWorktime?->replacedWith?->delete();
 
                 return response()->json(['status' => 'success']);
             }
@@ -201,75 +236,52 @@ class ServiceController extends Controller
 
 
         // SECTION antara sudah ada yang booking atau quota beda
-        Conflict::updateOrCreate([
-            'service_appointment_id' => $appointment->id,
-            'doctor_worktime_id' => $appointment->doctorWorktime->id,
-        ], [
-            'quota' => $request->quota,
-            'time_start' => $request->timeStart,
-            'time_end' => $request->timeEnd
-        ]);
-
-        return response()->json([
-            'status' => 'warning',
-            'message' => 'Sudah ada pasien yang mendaftar pada jadwal ini'
-        ]);
-    }
-
-    public function merge(MergeServiceRequest $request)
-    {
-        $id = $request->validated();
-        sort($id);
-        try {
-            $first = DoctorWorktime::find($id[0]);
-            $second = DoctorWorktime::whereId($id[1])
-                ->doesnthave('serviceAppointment')
-                ->doesnthave('conflict')
-                ->first();
-        }
-        catch(Exception $ignored) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Data tidak dapat ditemukan',
+        \DB::transaction(function () use ($doctorWorktime, $request) {
+            $conflictId = DoctorWorktime::insertGetId([
+                'doctor_service_id' => $doctorWorktime->doctor_service_id,
+                'quota' => $request->quota,
+                'day' => $doctorWorktime->day,
+                'time_start' => $request->timeStart,
+                'time_end' => $request->timeEnd,
+                'active_date' => null
             ]);
-        }
 
-        if (sizeof(array_diff_assoc($first->toArray(), $second->toArray())) > 3) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Data yang diberikan tidak cocok',
-            ]);
-        }
-
-
-        \DB::transaction(function() use ($first, $second) {
-            $first->restore();
-            $second->delete();
+            $doctorWorktime?->replacedWith?->delete();
+            $doctorWorktime->update(['replaced_with_id' => $conflictId]);
         });
 
-        return response()->json(['status' => 'success', 'deleted_id' => $second->id]);
+        $time = "$doctorWorktime->time_start - $doctorWorktime->time_end";
+        return response()->json([
+            'status' => 'warning',
+            'message' => "Sudah ada pasien yang mendaftar pada jadwal ini\nJadwal asli: $time"
+        ]);
+    }
+
+    public function destroyConflict(DoctorWorktime $doctorWorktime)
+    {
+        // biar di dalam closure tetap bisa akses
+        $doctorWorktime->load('replacedWith');
+
+        \DB::transaction(function () use ($doctorWorktime) {
+            $doctorWorktime->update(['replaced_with_id' => null]);
+            $doctorWorktime->replacedWith->update([
+                'replaced_with_id' => $doctorWorktime->id,
+                'deleted_at' => Carbon::now()
+            ]);
+        });
+
+        return response()->json([
+            'status' => 'success',
+            'info' => "$doctorWorktime->time_start - $doctorWorktime->time_end"
+        ]);
     }
 
 
-    private function quotaIsEmpty(array $quota, bool $checkEmptied = false)
-    {
-        foreach ($quota as $slot) {
-            if ((int) $slot !== 0 || ($checkEmptied && (int) $slot !== -1)) {
-                return false;
-            }
-        }
+    private function getLowestAndHighestHour(Collection $appointmentHistory) {
+        $result = $appointmentHistory->map(fn ($appointment) => (
+            Helpers::timeToNumber($appointment->time_start)
+        ));
 
-        return true;
-    }
-
-    private function addSlot(int $first, int $second, $appointment, Closure $closure)
-    {
-        $extraTime = $first - $second;
-        $extraQuota = $extraTime / $appointment->doctorWorktime->quota;
-        $newQuota = [];
-
-        for ($i = 0; $i < $extraQuota; $i++) $newQuota[$i] = 0;
-
-        $appointment->quota = $closure($newQuota, $appointment->quota);
+        return [$result->min(), $result->max()];
     }
 }

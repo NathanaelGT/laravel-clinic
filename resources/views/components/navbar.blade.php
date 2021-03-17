@@ -8,11 +8,7 @@
     </button>
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
       <ul class="navbar-nav ms-auto me-5">
-        @foreach ([
-          ['route' => route('admin@patient-list'), 'name' => 'Daftar Pasien'],
-          ['route' => route('admin@doctor-list'), 'name' => 'Daftar Dokter'],
-          ['route' => route('logout'), 'name' => 'Keluar']
-        ] as $nav)
+        @foreach ($navigations as $nav)
         <li class="nav-item">
           <a
             class="nav-link @if (URL::current() === $nav['route']) active @endif"

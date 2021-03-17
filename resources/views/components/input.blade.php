@@ -6,11 +6,13 @@
   <input
     id="{{ $kebab }}"
     name="{{ $kebab }}"
-    @if (isset($data['type'])) data-type="{{ $data['type'] }}" @endif
-    @if (isset($data['max'])) maxlength="{{ $data['max'] }}" @endif
+    @isset($data['type']) type="{{ $data['type'] }}" @endisset
+    @isset($data['max']) maxlength="{{ $data['max'] }}" @endisset
+    @isset($data['data-type']) data-type="{{ $data['data-type'] }}" @endisset
     placeholder="Masukkan {{ Str::lower($data['placeholder']) }}"
-    class="form-control @error($kebab) is-invalid @enderror"
+    class="form-control @if (Session::has($kebab)) is-invalid @enderror"
     autocomplete="off"
+    @isset($data['pattern']) pattern="{{ $data['pattern'] }}" @endisset
     @if (isset($data['value']) && $data['value'])
     value="{{ $data['value'] }}"
     disabled
@@ -18,8 +20,9 @@
     required
   />
   <span class="form-text text-danger">
-    <strong>
-      {!! Session::get($kebab) ?? '&nbsp;' !!}
-    </strong>
+    @if (Session::has($kebab))
+    <strong>{{ Session::pull($kebab) }}</strong>
+    @endif
+    &nbsp;
   </span>
 </div>

@@ -14,8 +14,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int|null $service_id
  * @property int $display_order
  * @property \Illuminate\Support\Carbon|null $deleted_at
- * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\PatientAppointment[] $appointment
- * @property-read int|null $appointment_count
+ * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\AppointmentHistory[] $appointmentHistory
+ * @property-read int|null $appointment_history_count
  * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\DoctorWorktime[] $doctorWorktime
  * @property-read int|null $doctor_worktime_count
  * @property-read \App\Models\Service|null $service
@@ -37,7 +37,7 @@ class DoctorService extends Model
     use HasFactory;
     use SoftDeletes;
 
-    public $fillable = ['doctor_name', 'service_id', 'display_order'];
+    public $guarded = ['deleted_at'];
     public $timestamps = false;
 
     public function service()
@@ -45,9 +45,9 @@ class DoctorService extends Model
         return $this->belongsTo(Service::class);
     }
 
-    public function appointment()
+    public function appointmentHistory()
     {
-        return $this->hasMany(PatientAppointment::class);
+        return $this->hasMany(AppointmentHistory::class);
     }
 
     public function doctorWorktime()

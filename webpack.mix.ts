@@ -16,7 +16,7 @@ mix.sass('resources/scss/app.scss', 'public/css')
    .js('resources/ts/home.tsx', 'public/js')
    .js('resources/ts/patientAppointment.tsx', 'public/js')
    .js('resources/ts/admin/newService.ts', 'public/js/admin')
-   .js('resources/ts/admin/doctorList.tsx', 'public/js/admin')
+   .js('resources/ts/admin/doctorList.ts', 'public/js/admin')
    .sourceMaps(false, 'source-map')
    .disableNotifications()
    .webpackConfig({

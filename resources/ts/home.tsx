@@ -28,8 +28,8 @@ const HourInfo = ({ index, schedule, doctor }: Props) => (
         ))}
       </div>
     ) : (
-        <p className="card-text mb-0">{schedule[today] || 'Tutup'}</p>
-      )}
+      <p className="card-text mb-0">{schedule[today] || 'Tutup'}</p>
+    )}
   </div>
 )
 
@@ -53,7 +53,9 @@ doctorsName.forEach((doctorsName, index) => {
     doctorName.onclick = () => {
       doctorsNameChildren.forEach(doctorName => {
         doctorName.classList.remove('bold')
+        doctorName.classList.add('text-muted')
       })
+      doctorName.classList.remove('text-muted')
       doctorName.classList.add('bold')
 
       containers[index].render(<HourInfo index={index} schedule={schedule} doctor={doctor} />)

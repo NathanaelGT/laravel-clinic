@@ -1,0 +1,7 @@
+conflict: hapus batalkan perubahaan, hapus berlakukan mulai minggu selanjutnya, tambahin field no hp di tabelnya, tambahin tombol cancel untuk per pasien
+
+
+api untuk ngeupdate jadwal: ganti sistem ngeceknya
+
+
+sistem baru: kalo jadwal yang diedit sudah ada yang pernah daftar (entah sudah selesai atau masih menunggu) buat jadwal baru, yang lama replaced_with_id nya kasih id jadwal baru, dan yang jadwal baru langsung berlaku, kalo jadwal yang diedit belum ada yang daftar, langsung ubah aja
