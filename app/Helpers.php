@@ -30,19 +30,19 @@ class Helpers
 
     public static function numberToTimeFormat(int $start, int $end)
     {
-        return Helpers::numberToTime($start) . ' - ' . Helpers::numberToTime($end);
+        return self::numberToTime($start) . ' - ' . self::numberToTime($end);
     }
 
     public static function timeFormatToNumber(string $time)
     {
         [$start, $end] = explode('-', $time);
 
-        return Helpers::timeToNumber($end) - Helpers::timeToNumber($start);
+        return self::timeToNumber($end) - self::timeToNumber($start);
     }
 
     public static function formatSlotTime(int $slot, string $time)
     {
-        $time = Helpers::timeFormatToNumber($time);
+        $time = self::timeFormatToNumber($time);
         if ($slot === $time) return '1 sesi';
 
         $minutes = $slot % 60;
@@ -55,8 +55,8 @@ class Helpers
 
     public static function workTime(DoctorWorktime $doctorWorktime)
     {
-        $timeStart = Helpers::timeToNumber($doctorWorktime['time_start']);
-        $timeEnd = Helpers::timeToNumber($doctorWorktime['time_end']);
+        $timeStart = self::timeToNumber($doctorWorktime['time_start']);
+        $timeEnd = self::timeToNumber($doctorWorktime['time_end']);
 
         return $timeEnd - $timeStart;
     }
@@ -70,22 +70,22 @@ class Helpers
             $patientAppointment['service_appointment']['quota']
         );
 
-        $timeStart = Helpers::timeToNumber($doctorWorktime['time_start']);
+        $timeStart = self::timeToNumber($doctorWorktime['time_start']);
         $timeStart += $slotIndex * $doctorWorktime['quota'];
 
-        $timeEnd = Helpers::numberToTime($timeStart + $doctorWorktime['quota']);
-        $timeStart = Helpers::numberToTime($timeStart);
+        $timeEnd = self::numberToTime($timeStart + $doctorWorktime['quota']);
+        $timeStart = self::numberToTime($timeStart);
 
         return [$timeStart, $timeEnd];
     }
 
 
-    public static $serviceSchedule = null;
+    public static $serviceSchedule;
     public static function getSchedule(string $serviceName, int $exceptionId = null)
     {
         $tomorrow = Carbon::tomorrow();
         $today = Carbon::createMidnightDate();
-        Helpers::$serviceSchedule = Service::with([
+        self::$serviceSchedule = Service::with([
             'doctorService.doctorWorktime' => function ($query) use ($today, $exceptionId) {
                 $query->whereNull('replaced_with_id');
                 $query->OrWhereNull('deleted_at');
@@ -95,14 +95,16 @@ class Helpers
                 if ($exceptionId) {
                     $query->orWhere('id', $exceptionId);
                 }
+
+                $query->orderBy('time_start');
             },
             'doctorService.doctorWorktime.appointmentHistory' => function ($query) {
-                // $query->where();
+                $query->whereStatus('Menunggu');
                 $query->orderBy('time_start');
             }
         ])->whereName($serviceName)->firstOrFail();
 
-        $doctors = Helpers::$serviceSchedule->doctorService->all();
+        $doctors = self::$serviceSchedule->doctorService->all();
 
         $days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
         $tomorrowIndex = array_search($tomorrow->dayName, $days);
@@ -126,20 +128,20 @@ class Helpers
             foreach ($sortedDay as $scheduleDay) {
                 foreach ($scheduleDay as $schedule) {
                     $quota = $schedule['quota'];
-                    $start = Helpers::timeToNumber($schedule['time_start']);
-                    $end = Helpers::timeToNumber($schedule['time_end']);
+                    $start = self::timeToNumber($schedule['time_start']);
+                    $end = self::timeToNumber($schedule['time_end']);
 
                     $taken = [];
                     foreach ($schedule->appointmentHistory as $appointment) {
                         $timeStart = $appointment['time_start'];
-                        $timeStart = Helpers::timeToNumber($timeStart);
+                        $timeStart = self::timeToNumber($timeStart);
                         $taken[$timeStart] = true;
                     }
 
                     $times = [];
                     for ($time = $start; $time < $end; $time += $quota) {
                         if (isset($taken[$time])) continue;
-                        array_push($times, Helpers::numberToTimeFormat($time, $time + $quota));
+                        array_push($times, self::numberToTimeFormat($time, $time + $quota));
                     }
 
                     $time = $schedule['day'];
