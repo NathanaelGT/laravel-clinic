@@ -27,7 +27,6 @@ class PatientRegistrationController extends Controller
 
     public function store(StoreAppointmentRequest $request)
     {
-        // dd($request->validated());
         $date = Carbon::parse((int) $request->date)->timezone(config('app.timezone'));
         $dayName = $date->dayName;
 
@@ -76,6 +75,8 @@ class PatientRegistrationController extends Controller
         $patientEnd = Helpers::timeToNumber($patientAppointment[1]);
 
         $found = false;
+        $invalidHour = false;
+        $success = false;
         foreach ($service->doctorWorktime as $schedule) {
             if ($patientEnd - $patientStart !== (int) $schedule->quota) continue;
             $found = true;
@@ -83,12 +84,8 @@ class PatientRegistrationController extends Controller
             $scheduleStart = Helpers::timeToNumber($schedule->time_start);
             $scheduleEnd = Helpers::timeToNumber($schedule->time_end);
             if ($patientStart < $scheduleStart || $patientEnd > $scheduleEnd) {
-                return $this->redirectInvalid(
-                    $serviceName,
-                    $seleted,
-                    'time',
-                    "Layanan dr. $request->doctor baru saja diubah, harap pilih jam praktek lain"
-                );
+                $invalidHour = true;
+                continue;
             }
 
             [$timeStart, $timeEnd] = explode(' - ', $request->time);
@@ -131,7 +128,17 @@ class PatientRegistrationController extends Controller
                 'status' => 'Menunggu'
             ]);
 
+            $success = true;
             break;
+        }
+
+        if (!$success && $invalidHour) {
+            return $this->redirectInvalid(
+                $serviceName,
+                $seleted,
+                'time',
+                "Layanan dr. $request->doctor baru saja diubah, harap pilih jam praktek lain"
+            );
         }
 
         if (!$found) {
