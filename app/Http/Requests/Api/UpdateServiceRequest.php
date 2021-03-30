@@ -29,8 +29,7 @@ class UpdateServiceRequest extends FormRequest
             'day' => 'required_with:doctor_service_id|in:Senin,Selasa,Rabu,Kamis,Jumat,Sabtu',
             'quota' => 'required|integer|min:1',
             'timeStart' => ['required', new TimeValidation()],
-            'timeEnd' => ['required', new TimeValidation()],
-            'skipPending' => 'boolean'
+            'timeEnd' => ['required', new TimeValidation()]
         ];
     }
 }

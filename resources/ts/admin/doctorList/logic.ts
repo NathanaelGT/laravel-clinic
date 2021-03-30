@@ -30,13 +30,14 @@ const update = (
     callback: res => {
       if (url !== 'delete') {
         element.contentEditable = 'true'
-        if (sibling) sibling.contentEditable = 'true'
-
+        if (sibling) {
+          sibling.contentEditable = 'true'
+          clearColor(sibling)
+        }
         clearColor(element)
-        clearColor(sibling)
 
         callback?.(res)
-        if (element.dataset.id !== 'new') return
+        if (!res.newId) return
 
         element.dataset.id = res.newId
         const previousSibling = element.previousElementSibling

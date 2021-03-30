@@ -19,7 +19,7 @@ class ApiController extends Controller
 
     public function close(DoctorWorktime $doctorWorktime)
     {
-        $hasConflict = AppointmentHistory::whereStatus('Menunggu')
+        $hasConflict = AppointmentHistory::whereIn('status', ['Menunggu', 'Konflik'])
             ->whereDoctorWorktimeId($doctorWorktime->id)
             ->whereDate('date', '>', today())
             ->exists();

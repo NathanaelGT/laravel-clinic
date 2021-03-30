@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Conflict;
 use App\Models\DoctorService;
 use App\Models\DoctorWorktime;
 use App\Models\Service;
@@ -11,7 +12,7 @@ class DoctorController extends Controller
 {
     public function list()
     {
-        $hasConflict = DoctorWorktime::hasConflict();
+        $hasConflict = Conflict::any();
 
         $services = Service::with([
             'doctorService' => function ($query) {

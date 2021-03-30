@@ -45,7 +45,7 @@ class DisplayOrderController extends Controller
         sort($order);
 
         if ($doctorServicesIdArray !== $order) {
-            return response()->json(['status' => 'error', 'message' => 'Data yang diberikan tidak sesuai', 'asd' => [$doctorServicesIdArray, $order]]);
+            return response()->json(['status' => 'error', 'message' => 'Data yang diberikan tidak sesuai']);
         }
         elseif ($servicesId === $request->order) {
             return response()->json(['status' => 'warning', 'message' => 'Tidak ada data yang berubah']);

@@ -30,24 +30,19 @@ Route::post('/daftar', [PatientRegistrationController::class, 'store'])->name('p
 Route::group(['prefix' => 'admin', 'as' => 'admin@', 'middleware' => 'auth'], function () {
     Route::get('new-service', [ServiceController::class, 'create'])->name('new-service');
     Route::get('log', [PatientController::class, 'log'])->name('log');
+    Route::get('conflict', [ConflictController::class, 'list'])->name('conflict');
 
     Route::group(['prefix' => 'patient', 'as' => 'patient-'], function () {
         Route::get('list', [PatientController::class, 'list'])->name('list');
-        Route::get('done/{appointmentHistory}', [PatientController::class, 'done'])->name('done');
-        Route::get('cancel/{appointmentHistory}', [PatientController::class, 'cancel'])->name('cancel');
-        Route::get('reschedule/{appointmentHistory}', [PatientController::class, 'reschedule'])->name('reschedule');
-        Route::put('reschedule/{appointmentHistory}', [PatientController::class, 'update'])->name('reschedule:put');
+        Route::get('done/{id}', [PatientController::class, 'done'])->name('done');
+        Route::get('cancel/{id}', [PatientController::class, 'cancel'])->name('cancel');
+        Route::get('reschedule/{id}', [PatientController::class, 'reschedule'])->name('reschedule');
+        Route::put('reschedule/{id}', [PatientController::class, 'update'])->name('reschedule:put');
     });
 
     Route::group(['prefix' => 'doctor-list'], function () {
         Route::get('/', [DoctorController::class, 'list'])->name('doctor-list');
         Route::delete('/{doctorService}', [DoctorController::class, 'delete'])->name('delete-service');
-    });
-
-    Route::group(['prefix' => 'conflict', 'as' => 'conflict'], function () {
-        Route::get('/', [ConflictController::class, 'list']);
-        Route::get('cancel/{doctorWorktime}', [ConflictController::class, 'destroy'])->name('-cancel');
-        Route::get('nextweek/{doctorWorktime}', [ConflictController::class, 'nextWeek'])->name('-nextweek');
     });
 });
 

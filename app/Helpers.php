@@ -99,7 +99,7 @@ class Helpers
                 $query->orderBy('time_start');
             },
             'doctorService.doctorWorktime.appointmentHistory' => function ($query) {
-                $query->whereStatus('Menunggu');
+                $query->whereIn('status', ['Menunggu', 'Konflik']);
                 $query->orderBy('time_start');
             }
         ])->whereName($serviceName)->firstOrFail();

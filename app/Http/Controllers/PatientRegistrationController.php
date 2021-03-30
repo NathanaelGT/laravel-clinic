@@ -90,6 +90,7 @@ class PatientRegistrationController extends Controller
 
             [$timeStart, $timeEnd] = explode(' - ', $request->time);
             $appointment = AppointmentHistory::whereDate('date', $date)
+                ->whereIn('status', ['Menunggu', 'Konflik'])
                 ->whereDoctorWorktimeId($schedule->id)
                 ->whereTimeStart($timeStart)
                 ->whereTimeEnd($timeEnd)

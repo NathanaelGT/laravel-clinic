@@ -4,10 +4,10 @@ namespace App\Http\Controllers\Admin;
 
 use App\Helpers;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\UpdatePatientRequest;
 use App\Models\AppointmentHistory;
 use App\Models\DoctorService;
 use Carbon\Carbon;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class PatientController extends Controller
@@ -15,7 +15,7 @@ class PatientController extends Controller
     public function list()
     {
         $appointments = AppointmentHistory::with('patient', 'doctorService.service')
-            ->whereStatus('Menunggu')
+            ->whereIn('status', ['Menunggu', 'Konflik'])
             ->orderBy('date')
             ->orderBy('time_start')
             ->get();
@@ -23,48 +23,55 @@ class PatientController extends Controller
         return view('admin.patient-list', compact('appointments'));
     }
 
-    public function done(AppointmentHistory $appointmentHistory)
+    public function done($id)
     {
-        $appointmentHistory->update(['status' => 'Selesai']);
+        AppointmentHistory::whereStatus('Menunggu')
+            ->whereId($id)
+            ->update(['status' => 'Selesai']);
 
         return redirect(route('admin@patient-list'));
     }
 
-    public function cancel(AppointmentHistory $appointmentHistory)
+    public function cancel($id)
     {
-        $appointmentHistory->update(['status' => 'Dibatalkan']);
+        AppointmentHistory::whereIn('status', ['Menunggu', 'Konflik'])
+            ->whereId($id)
+            ->update(['status' => 'Dibatalkan']);
 
         return redirect(route('admin@patient-list'));
     }
 
-    public function reschedule(AppointmentHistory $appointmentHistory)
+    public function reschedule($id)
     {
-        $appointmentHistory->load([
-            'doctorWorktime' => function ($query) {
-                $query->withTrashed();
-            },
-            'doctorWorktime.doctorService.service'
-        ]);
+        $appointment = AppointmentHistory::whereIn('status', ['Menunggu', 'Konflik'])
+            ->whereId($id)
+            ->with([
+                'doctorWorktime' => function ($query) {
+                    $query->withTrashed();
+                },
+                'doctorWorktime.doctorService.service'
+            ])
+            ->firstOrFail();
 
-        $doctorWorktime = $appointmentHistory->doctorWorktime;
+        $doctorWorktime = $appointment->doctorWorktime;
         $service = $doctorWorktime->doctorService->service->name;
         $schedules = Helpers::getSchedule($service, $doctorWorktime->replaced_with_id);
         $doctors = array_column(Helpers::$serviceSchedule->doctorService->all(), 'doctor_name');
-        $formAction = route('admin@patient-reschedule:put', $appointmentHistory->id);
+        $formAction = route('admin@patient-reschedule:put', $appointment->id);
         $formMethod = 'PUT';
 
         $patient = [
-            'name' => $appointmentHistory->patient->name,
-            'nik' => $appointmentHistory->patient->nik,
-            'phone_number' => $appointmentHistory->patient->phone_number,
-            'address' => $appointmentHistory->patient->address,
+            'name' => $appointment->patient->name,
+            'nik' => $appointment->patient->nik,
+            'phone_number' => $appointment->patient->phone_number,
+            'address' => $appointment->patient->address,
             'doctor' => $doctorWorktime->doctorService->doctor_name
         ];
 
         $selected = [
             'doctor' => $doctorWorktime->doctorService->doctor_name,
-            'date' => $appointmentHistory->date->isoFormat('X'),
-            'time' => $appointmentHistory->time_start . ' - ' . $appointmentHistory->time_end
+            'date' => $appointment->date->isoFormat('X'),
+            'time' => $appointment->time_start . ' - ' . $appointment->time_end
         ];
 
         return view(
@@ -73,30 +80,35 @@ class PatientController extends Controller
         );
     }
 
-    public function update(Request $request, AppointmentHistory $appointmentHistory)
+    public function update(UpdatePatientRequest $request, $id)
     {
-        // dd($request->all());
         [$timeStart, $timeEnd] = explode(' - ', $request->time);
         if (!$timeEnd) {
             return back()->withErrors(['time' => 'Waktu tidak valid']);
         }
 
+        $appointment = AppointmentHistory::whereIn('status', ['Menunggu', 'Konflik'])
+            ->whereId($id)
+            ->firstOrFail();
+
         $date = Carbon::parse((int) $request->date)->timezone(config('app.timezone'));
-        $appointment = AppointmentHistory::whereDate('date', $date)
-            ->whereDoctorServiceId($appointmentHistory->doctor_service_id)
+        $otherAppointment = AppointmentHistory::whereDate('date', $date)
+            ->whereDoctorServiceId($appointment->doctor_service_id)
             ->whereTimeStart($timeStart)
             ->whereTimeEnd($timeEnd)
             ->exists();
 
-        if ($appointment) {
+        if ($otherAppointment) {
             return back()->withErrors(['time' => 'Slot ini telah dipesan orang lain']);
         }
 
         $date = Carbon::parse((int) $request->date)->timezone(config('app.timezone'));
         $dayName = $date->dayName;
-        $service = DoctorService::with(['doctorWorktime' => function ($query) use ($dayName) {
-            $query->where('day', $dayName);
-        }])->whereDoctorName($request->doctor)->first();
+        $service = DoctorService::whereDoctorName($request->doctor)
+            ->with(['doctorWorktime' => function ($query) use ($dayName) {
+                $query->where('day', $dayName);
+            }])
+            ->first();
 
         if (!$service) {
             return back()->withErrors(['doctor' => "Layanan dokter $request->doctor tidak dapat ditemukan"]);
@@ -114,11 +126,11 @@ class PatientController extends Controller
             if ($patientEnd - $patientStart !== (int) $schedule->quota) continue;
             $found = true;
 
-            DB::transaction(function () use ($appointmentHistory, $date, $timeStart, $timeEnd, $schedule) {
+            DB::transaction(function () use ($appointment, $date, $timeStart, $timeEnd, $schedule) {
                 $now = now();
 
                 $rescheduleId = AppointmentHistory::insertGetId(
-                    array_merge($appointmentHistory->toArray(), [
+                    array_merge($appointment->toArray(), [
                         'id' => null,
                         'date' => $date,
                         'time_start' => $timeStart,
@@ -128,7 +140,7 @@ class PatientController extends Controller
                         'updated_at' => $now
                     ])
                 );
-                $appointmentHistory->update([
+                $appointment->update([
                     'status' => 'Reschedule',
                     'reschedule_id' => $rescheduleId
                 ]);
@@ -149,7 +161,7 @@ class PatientController extends Controller
     public function log()
     {
         $appointments = AppointmentHistory::with('patient', 'doctorService.service')
-            ->where('status', '!=', 'Menunggu')
+            ->whereNotIn('status', ['Menunggu', 'Konflik'])
             ->orderBy('date')
             ->paginate(10);
 

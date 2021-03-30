@@ -33,7 +33,7 @@
               @if ($loop->first && sizeof($doctors) === 1)
                 <td data-drag="{{ $ids[$service] }}">{{ $service }}</td>
               @endif
-              <td class="editable" data-type="name" data-id="{{ $ids["$service.$doctor"] }}">{{ $doctor }}</td>
+              <td class="editable p-0" data-type="name" data-id="{{ $ids["$service.$doctor"] }}">{{ $doctor }}</td>
               <td class="doctor-schedule">
                 <div class="row">
                   @foreach (['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'] as $day)

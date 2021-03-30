@@ -3,6 +3,7 @@
 namespace App\View\Components;
 
 use App\Helpers;
+use App\Conflict;
 use Illuminate\View\Component;
 
 class ActiveSchedule extends Component
@@ -11,7 +12,7 @@ class ActiveSchedule extends Component
     private $title;
     private $className;
     private $isClose;
-    private $timeClassName;
+    private $timeClassName = '';
     private $timeTitle;
     private $timeText;
     private $quotaClassName;
@@ -42,6 +43,10 @@ class ActiveSchedule extends Component
                 $this->timeTitle = "Sudah ada pasien yang mendaftar pada jadwal ini\n";
                 $this->timeTitle .= 'Jadwal asli: ' . $schedule['time'];
             }
+        }
+
+        if (Conflict::contain($schedule['id'])) {
+            $this->timeClassName .= ' text-warning';
         }
 
         $this->timeText = (is_null($schedule['replacedWith']) ? $schedule : $schedule['replacedWith'])['time'];

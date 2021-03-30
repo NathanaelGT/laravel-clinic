@@ -27,7 +27,7 @@ class CreateAppointmentHistoriesTable extends Migration
             $table->string('patient_phone_number', 15);
             $table->string('patient_address');
             $table->foreignId('patient_id')->nullable()->constrained()->nullOnDelete();
-            $table->enum('status', ['Menunggu', 'Selesai', 'Dibatalkan', 'Reschedule']);
+            $table->enum('status', ['Menunggu', 'Selesai', 'Dibatalkan', 'Reschedule', 'Konflik']);
             $table->foreignId('reschedule_id')->nullable()->constrained('appointment_histories')->nullOnDelete();
             $table->timestamps();
         });
