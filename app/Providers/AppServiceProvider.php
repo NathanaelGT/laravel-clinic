@@ -2,7 +2,6 @@
 
 namespace App\Providers;
 
-use Barryvdh\LaravelIdeHelper\IdeHelperServiceProvider;
 use Carbon\Carbon;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\DB;
@@ -18,9 +17,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        if (config('app.debug')) {
-            $this->app->register(IdeHelperServiceProvider::class);
-        }
+        //
     }
 
     /**
