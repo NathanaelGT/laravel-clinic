@@ -43,7 +43,9 @@ class Handler extends ExceptionHandler
                 'message' => $throwable->getMessage(),
                 'errors' => $throwable->errors()
             ];
-            if (env('APP_DEBUG')) array_push($message, ['stacktrace' => $throwable->getTrace()]);
+            if (config('app.debug')) {
+                array_push($message, ['stacktrace' => $throwable->getTrace()]);
+            }
 
             return response()->json($message, JsonResponse::HTTP_UNPROCESSABLE_ENTITY);
         }

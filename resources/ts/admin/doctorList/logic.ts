@@ -52,7 +52,9 @@ const update = (
     },
     fail: message => {
       element.contentEditable = 'true'
-      if (sibling) sibling.contentEditable = 'true'
+      if (sibling) {
+        sibling.contentEditable = 'true'
+      }
 
       element.classList.replace('text-secondary', 'text-danger')
       sibling?.classList.replace('text-secondary', 'text-danger')

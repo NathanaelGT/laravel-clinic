@@ -13,7 +13,7 @@ return [
     |
     */
 
-    'failed' => 'Data pengguna tidak dapat ditemukan.',
+    'failed' => 'Harap periksa kembali email atau kata sandi anda.',
     'password' => 'Kata sandi yang diberikan tidak sesuai.',
     'throttle' => 'Terlalu banyak percobaan masuk. Coba lagi dalam :seconds detik.',
 

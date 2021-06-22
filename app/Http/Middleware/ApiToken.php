@@ -19,8 +19,7 @@ class ApiToken
      */
     public function handle(Request $request, Closure $next)
     {
-        $cookie = $request->cookie('token');
-        if (!$cookie) {
+        if (!$cookie = $request->cookie('token')) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Unauthorized'

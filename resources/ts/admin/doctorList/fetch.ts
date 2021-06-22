@@ -1,8 +1,8 @@
 interface Fetch {
-  endpoint: string,
-  method: 'GET' | 'POST' | 'PUT' | 'DELETE',
-  data?: Object,
-  callback?: (res: any) => any,
+  endpoint: string
+  method: 'GET' | 'POST' | 'PUT' | 'DELETE'
+  data?: Object
+  callback?: (res: any) => any
   fail?: (message: string) => any
 }
 
@@ -44,7 +44,9 @@ export default ({ endpoint, method, data, callback, fail }: Fetch) => {
         ) {
           document.documentElement.innerHTML = res
         }
-        else console.error(res)
+        else {
+          console.error(res)
+        }
       }
     })
     .catch(err => {

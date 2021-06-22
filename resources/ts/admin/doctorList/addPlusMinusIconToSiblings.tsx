@@ -35,7 +35,9 @@ export default (elements: NodeListOf<Element>) => {
           )
         }
       }
-      if (siblingFirstChildText === 'Tutup') siblingFirstChild.remove()
+      if (siblingFirstChildText === 'Tutup') {
+        siblingFirstChild.remove()
+      }
     }
 
     sibling.appendChild(icon)

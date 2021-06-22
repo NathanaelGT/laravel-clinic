@@ -4,14 +4,14 @@ import MultipleInput from './MultipleInput'
 import InlineCheckbox from './InlineCheckbox'
 
 interface Props {
-  handleSubmit: (event: Event) => void,
-  errorMessages: ErrorMessage[],
-  currentIndex: number,
-  getButtonsData: () => ButtonData[],
-  quotaValue: QuotaValue[],
-  serviceName: string,
-  doctorName: string,
-  timeInputValue: string[][],
+  handleSubmit: (event: Event) => void
+  errorMessages: ErrorMessage[]
+  currentIndex: number
+  getButtonsData: () => ButtonData[]
+  quotaValue: QuotaValue[]
+  serviceName: string
+  doctorName: string
+  timeInputValue: string[][]
   dayValue: string[][]
 }
 
@@ -33,7 +33,7 @@ export default (data: Props) => {
       }
       data.quotaValue[currentIndex].time = perInput.value
     }
-    data.quotaValue[currentIndex][field] = (event.target as any).value
+    data.quotaValue[currentIndex][field] = (event.target as HTMLInputElement).value
   }
 
   return (
@@ -112,7 +112,7 @@ export default (data: Props) => {
       <div className="w-100">
         <div className="d-flex justify-content-center pb-1">
           Hari Praktek
-      </div>
+        </div>
 
         <div className="d-flex flex-column flex-sm-row justify-content-center">
           {[['Senin', 'Selasa', 'Rabu'], ['Kamis', 'Jumat', 'Sabtu'], ['Minggu']].map(days => (
@@ -122,10 +122,12 @@ export default (data: Props) => {
                   value={value}
                   checked={data.dayValue[currentIndex].indexOf(value) !== -1}
                   onchange={event => {
-                    if ((event.target as HTMLInputElement).checked)
+                    if ((event.target as HTMLInputElement).checked) {
                       data.dayValue[currentIndex].push(value)
-                    else
+                    }
+                    else {
                       data.dayValue[currentIndex] = data.dayValue[currentIndex].filter(day => day !== value)
+                    }
                   }}
                 />
               ))}

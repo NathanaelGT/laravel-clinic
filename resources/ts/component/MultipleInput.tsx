@@ -1,21 +1,22 @@
 const validateNumber = event => {
-  if (event.which !== 8 && event.which !== 0 && event.which < 48 || event.which > 57)
+  if (event.which !== 8 && event.which !== 0 && event.which < 48 || event.which > 57) {
     event.preventDefault()
+  }
 }
 
 interface Props {
-  name: string,
-  leftPlaceholder: string,
-  leftOninput: (event: Event) => any,
-  leftValue: string,
-  separator: string,
-  middlePlaceholder: string,
-  middleOninput: (event: Event) => any,
-  middleValue: string,
-  rightPlaceholder: string,
-  rightOninput: (event: Event) => any,
-  rightValue: string,
-  options: string[],
+  name: string
+  leftPlaceholder: string
+  leftOninput: (event: Event) => any
+  leftValue: string
+  separator: string
+  middlePlaceholder: string
+  middleOninput: (event: Event) => any
+  middleValue: string
+  rightPlaceholder: string
+  rightOninput: (event: Event) => any
+  rightValue: string
+  options: string[]
   errorMessage?: any | null
 }
 

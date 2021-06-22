@@ -24,17 +24,27 @@ const checkIfScheduleCollided = (element: HTMLElement, start: number, end: numbe
 
 const validate = {
   name(value: string) {
-    if (value.length < 1) return 'nama terlalu pendek (minimal 1 huruf)'
-    if (value.length > 255) return 'nama terlalu panjang (maksimal 255 huruf)'
+    if (value.length < 1) {
+      return 'nama terlalu pendek (minimal 1 huruf)'
+    }
+    if (value.length > 255) {
+      return 'nama terlalu panjang (maksimal 255 huruf)'
+    }
   },
 
   time(value: string, element: HTMLElement) {
     const time = value.split(value.indexOf('-') > -1 ? '-' : ' ').map(val => val.trim())
     const [start, end] = time.map(timeToNumber)
-    if (time.length !== 2) return 'waktu praktek tidak valid'
+    if (time.length !== 2) {
+      return 'waktu praktek tidak valid'
+    }
 
-    if (start > end) return 'waktu mulai lebih besar dari waktu selesai'
-    else if (start === end) return 'waktu mulai tidak bisa sama dengan waktu selesai'
+    if (start > end) {
+      return 'waktu mulai lebih besar dari waktu selesai'
+    }
+    else if (start === end) {
+      return 'waktu mulai tidak bisa sama dengan waktu selesai'
+    }
 
     let timeFormat = ''
     const message = time.map((time, index) => {
@@ -43,26 +53,38 @@ const validate = {
       const minute = timeNumber[1] || 0
 
       const validatedHour = validateTime(hour, 24, 'jam')
-      if (validatedHour) return validatedHour
+      if (validatedHour) {
+        return validatedHour
+      }
 
       const validatedMinute = validateTime(minute, 60, 'menit')
-      if (validatedMinute) return validatedMinute
+      if (validatedMinute) {
+        return validatedMinute
+      }
 
-      if (index > 0) timeFormat += ' - '
+      if (index > 0) {
+        timeFormat += ' - '
+      }
       timeFormat += (hour > 9 ? hour : '0' + hour) + ':' + (minute > 9 ? minute : '0' + minute)
     })
 
     for (let i = 0; i < message.length - 1; i++) {
-      if (message[i]) return message[i]
+      if (message[i]) {
+        return message[i]
+      }
     }
     element.innerText = timeFormat
 
     const per = (element.nextElementSibling as HTMLElement).innerText
     const validation = validateQuota(per, time)
-    if (validation) return validation
+    if (validation) {
+      return validation
+    }
 
     const collidedMessage = checkIfScheduleCollided(element, start, end)
-    if (collidedMessage) return collidedMessage
+    if (collidedMessage) {
+      return collidedMessage
+    }
   },
 
   per(value: string, element: HTMLElement) {
@@ -70,14 +92,22 @@ const validate = {
     const [startNumber, endNumber] = [timeToNumber(start), timeToNumber(end)]
     const time = endNumber - startNumber
     const per = readFormat(value, time)
-    if (isNaN(per)) return 'kuota tidak valid'
-    else element.innerText = formatTime(per, time)
+    if (isNaN(per)) {
+      return 'kuota tidak valid'
+    }
+    else {
+      element.innerText = formatTime(per, time)
+    }
 
     const validation = validateQuota(value, [start, end])
-    if (validation) return validation
+    if (validation) {
+      return validation
+    }
 
     const collidedMessage = checkIfScheduleCollided(element, startNumber, endNumber)
-    if (collidedMessage) return collidedMessage
+    if (collidedMessage) {
+      return collidedMessage
+    }
   }
 }
 
@@ -90,7 +120,9 @@ export default (element: HTMLElement) => {
   }
 
   const rollbackIf = (condition: any) => {
-    if (condition) rollback()
+    if (condition) {
+      rollback()
+    }
   }
 
   return (checkIfScheduleIsNew: any = true) => {
@@ -108,7 +140,6 @@ export default (element: HTMLElement) => {
         if (grandParent.childElementCount === 2) {
           if (confirm(`Apakah anda yakin ingin menutup jadwal pada hari ${day}?`)) {
             fetching.close(element, ({ status, message }) => {
-              console.log(status, message)
               if (status === 'warning') {
                 const grandParentsGrandChild = grandParent.firstElementChild.firstElementChild
                 grandParentsGrandChild.classList.add('text-warning');
@@ -123,7 +154,9 @@ export default (element: HTMLElement) => {
                     (grandChild.children[1] as HTMLElement).innerText.trim() === 'Tutup'
                   ))
                 ))
-                if (blank) deleteTableRecord(rowElement.parentElement)
+                if (blank) {
+                  deleteTableRecord(rowElement.parentElement)
+                }
               }
             })
 
@@ -187,7 +220,9 @@ export default (element: HTMLElement) => {
       fetching[type === 'time' || type === 'per' ? 'service' : type](element, newText)
     }
     catch (exception) {
-      if (exception !== 'rollback') throw exception
+      if (exception !== 'rollback') {
+        throw exception
+      }
     }
   }
 }

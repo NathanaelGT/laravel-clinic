@@ -1,6 +1,6 @@
 interface Props {
-  value: string,
-  onchange: (event: Event) => void,
+  value: string
+  onchange: (event: Event) => void
   checked: boolean
 }
 

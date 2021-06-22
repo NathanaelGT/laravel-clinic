@@ -3,6 +3,7 @@
 namespace App\View\Components;
 
 use App\Conflict;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\View\Component;
 
 class Navbar extends Component
@@ -11,7 +12,7 @@ class Navbar extends Component
 
     public function __construct()
     {
-        if (Conflict::any()) {
+        if (Auth::check() && Conflict::any()) {
             $this->addNavigation('admin@conflict', 'Kunjungan yang bermasalah');
         }
 

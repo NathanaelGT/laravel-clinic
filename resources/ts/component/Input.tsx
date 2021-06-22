@@ -1,12 +1,12 @@
 interface Props {
-  placeholder: string,
-  name: string,
-  type?: 'text' | 'time',
-  oninput?: (event: Event) => any | null,
-  value?: string,
-  currentIndex?: number | -1,
-  onkeypress?: () => any | null,
-  errorMessage?: string | null,
+  placeholder: string
+  name: string
+  type?: 'text' | 'time'
+  oninput?: (event: Event) => any | null
+  value?: string
+  currentIndex?: number | -1
+  onkeypress?: () => any | null
+  errorMessage?: string | null
   list?: string | null
 }
 
@@ -27,7 +27,9 @@ export default ({
       autocomplete="off"
     />
   )
-  if (list) input.setAttribute('list', list)
+  if (list) {
+    input.setAttribute('list', list)
+  }
 
   return (
     <div>

@@ -8,8 +8,8 @@ const handleDivClick = ({ index, schedule, doctor }: Props) => () => {
 }
 
 interface Props {
-  index: number,
-  schedule: any,
+  index: number
+  schedule: any
   doctor: string
 }
 
@@ -35,7 +35,7 @@ const HourInfo = ({ index, schedule, doctor }: Props) => (
 
 const containers = document.querySelectorAll<DOMElement>('.service-card')
 containers.forEach((container, index) => {
-  const element = container.querySelector('span.bold') as HTMLSpanElement
+  const element = container.querySelector<HTMLElement>('span.bold')
   const schedule = JSON.parse(element.getAttribute('data-schedule'))
   const doctor = element.innerText
 

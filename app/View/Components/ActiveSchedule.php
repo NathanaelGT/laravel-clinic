@@ -27,8 +27,7 @@ class ActiveSchedule extends Component
         if ($schedule['activeDate']->isFuture()) {
             $this->title = 'Jadwal ini akan berlaku mulai ' . $schedule['activeDate']->isoFormat($timeFormat);
             $this->className = 'fst-italic grey';
-        }
-        elseif ($schedule['deletedAt']) {
+        } elseif ($schedule['deletedAt']) {
             $this->title = 'Jadwal ini akan terhapus pada ' . $schedule['deletedAt']->isoFormat($timeFormat);
             $this->className = 'text-decoration-line-through';
         }

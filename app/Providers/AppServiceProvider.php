@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use Barryvdh\LaravelIdeHelper\IdeHelperServiceProvider;
+use Carbon\Carbon;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
@@ -16,8 +18,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        if ($this->app->isLocal()) {
-            $this->app->register(\Barryvdh\LaravelIdeHelper\IdeHelperServiceProvider::class);
+        if (config('app.debug')) {
+            $this->app->register(IdeHelperServiceProvider::class);
         }
     }
 
@@ -28,33 +30,28 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        \Carbon\Carbon::setLocale('id');
+        Carbon::setLocale('id');
         Paginator::useBootstrap();
 
-        if (env('APP_DEBUG')) {
+        if (config('app.debug')) {
             $firstTime = true;
             DB::listen(function ($query) use (&$firstTime) {
-                File::append(
-                    storage_path('/logs/query.log'),
-                    ($firstTime ? "\n[" . date('Y-m-d H:i:s') . "]\n" : '') .
-                    sprintf(
-                        str_replace('?', '%s', $query->sql),
-                        ...array_map(
-                            function ($bind) {
-                                try {
-                                    return (int) $bind == $bind ? $bind : "'$bind'";
-                                }
-                                catch (\Exception $ignored) {
-                                    return "'$bind'";
-                                }
-                            },
-                            $query->bindings
-                        )
-                    ) .
-                    "\n"
-                );
+                $log = array_map(function ($bind) {
+                    try {
+                        return (int) $bind == $bind ? $bind : "'$bind'";
+                    } catch (\Exception) {
+                        return "'$bind'";
+                    }
+                }, $query->bindings);
 
-                $firstTime = false;
+                $data = '';
+                if ($firstTime) {
+                    $firstTime = false;
+                    $data = "\n[" . date('Y-m-d H:i:s') . "]\n";
+                }
+                $data .= sprintf(str_replace('?', '%s', $query->sql), ...$log) . "\n";
+
+                File::append(storage_path('/logs/query.log'), $data);
             });
         }
     }

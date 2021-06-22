@@ -12,9 +12,7 @@ export default (tableBody: HTMLElement) => {
 
     service.addEventListener('dragstart', () => {
       serviceOrder = Array.from(tableBody.querySelectorAll<HTMLTableDataCellElement>('td[data-drag]'))
-        .map(service => {
-          return Number(service.dataset.drag)
-        })
+        .map(service => Number(service.dataset.drag))
 
       const dragId = (service.firstElementChild as HTMLTableDataCellElement).dataset.drag
       draggedElement = [
@@ -35,11 +33,11 @@ export default (tableBody: HTMLElement) => {
         element.classList.remove('opacity-half')
       })
       const newOrder = Array.from(tableBody.querySelectorAll<HTMLTableDataCellElement>('td[data-drag]'))
-        .map(service => {
-          return Number(service.dataset.drag)
-        })
+        .map(service => Number(service.dataset.drag))
 
-      if (serviceOrder.toString() === newOrder.toString()) return removeOpacityHalf()
+      if (serviceOrder.toString() === newOrder.toString()) {
+        return removeOpacityHalf()
+      }
       fetch({
         endpoint: 'reorderService',
         method: 'POST',
@@ -87,7 +85,9 @@ export default (tableBody: HTMLElement) => {
         Number(firstChild(schedule).dataset.id)
       ))
 
-      if (order.toString() === newOrder.toString()) return schedule.classList.remove('opacity-half')
+      if (order.toString() === newOrder.toString()) {
+        return schedule.classList.remove('opacity-half')
+      }
       fetch({
         endpoint: 'reorderDoctorService/' + schedule.dataset.dragTarget,
         method: 'POST',
@@ -109,7 +109,9 @@ export default (tableBody: HTMLElement) => {
   tableBody.addEventListener('dragover', event => {
     const yPos = event.clientY
     if (previousY === yPos) return
-    if (timeoutId) clearTimeout(timeoutId)
+    if (timeoutId) {
+      clearTimeout(timeoutId)
+    }
     previousY = yPos
 
     timeoutId = setTimeout(() => {

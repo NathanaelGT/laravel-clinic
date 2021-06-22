@@ -34,4 +34,6 @@ mix.sass('resources/scss/app.scss', 'public/css')
       }
    })
 
-if (mix.inProduction()) mix.version()
+if (mix.inProduction()) {
+   mix.version()
+}

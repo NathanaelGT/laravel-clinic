@@ -36,6 +36,10 @@ class ApiController extends Controller
                 ]);
 
                 $doctorWorktime->update(['replaced_with_id' => $conflictId]);
+
+                AppointmentHistory::whereDoctorWorktimeId($doctorWorktime->id)->update([
+                    'status' => 'Konflik'
+                ]);
             });
 
             $time = "$doctorWorktime->time_start - $doctorWorktime->time_end";

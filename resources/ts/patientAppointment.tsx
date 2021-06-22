@@ -1,15 +1,15 @@
 interface Window {
   schedules: {
-    Senin?: string[],
-    Selasa?: string[],
-    Rabu?: string[],
-    Kamis?: string[],
-    Sabtu?: string[],
+    Senin?: string[]
+    Selasa?: string[]
+    Rabu?: string[]
+    Kamis?: string[]
+    Sabtu?: string[]
     Jumat?: string[]
-  }[],
+  }[]
   selected?: {
-    doctor: string,
-    date: string,
+    doctor: string
+    date: string
     time: string
   }
 }
@@ -19,15 +19,15 @@ const isNumber = (val: string) => !isNaN(Number(val)) && !/\./.test(val)
 const isPhoneNumber = (val: string) => /^[0-9]{0,5}[-\s\.]?[0-9]{0,5}[-\s\.]?[0-9]{0,5}$/.test(val)
 
 const cacheInputValue = [
-  { validation: isNotEmpty, element: document.getElementById('name') as HTMLInputElement },
-  { validation: isNumber, element: document.getElementById('nik') as HTMLInputElement },
-  { validation: isPhoneNumber, element: document.getElementById('phone-number') as HTMLInputElement },
-  { validation: isNotEmpty, element: document.getElementById('address') as HTMLInputElement }
+  { validation: isNotEmpty, element: document.querySelector<HTMLInputElement>('#name') },
+  { validation: isNumber, element: document.querySelector<HTMLInputElement>('#nik') },
+  { validation: isPhoneNumber, element: document.querySelector<HTMLInputElement>('#phone-number') },
+  { validation: isNotEmpty, element: document.querySelector<HTMLInputElement>('#address') }
 ]
 
-const doctorInput = document.getElementById('doctor')
-const dateInput = document.getElementById('date') as HTMLSelectElement
-const timeInput = document.getElementById('time') as HTMLSelectElement
+const doctorInput = document.querySelector<HTMLElement>('#doctor')
+const dateInput = document.querySelector<HTMLSelectElement>('#date')
+const timeInput = document.querySelector<HTMLSelectElement>('#time')
 const inputNumber = document.querySelectorAll<HTMLInputElement>('input[data-type="number"]')
 const inputPhoneNumber = document.querySelectorAll<HTMLInputElement>('input[data-type="phone-number"]')
 const form = document.querySelector('form')
@@ -43,7 +43,9 @@ cacheInputValue.forEach(({ element, validation }) => {
     }
 
     const savedValue = localStorage.getItem(key)
-    if (validation(savedValue)) element.value = savedValue
+    if (validation(savedValue)) {
+      element.value = savedValue
+    }
   }
 })
 
@@ -64,7 +66,6 @@ inputNumber.forEach(input => {
 
 inputPhoneNumber.forEach(input => {
   input.onkeypress = event => {
-    console.log('onkeypress')
     if (!isPhoneNumber(input.value + event.key)) {
       event.preventDefault()
     }
@@ -166,7 +167,9 @@ dateInput.onchange = event => {
     if (!hour) return
 
     const option = <OptionElement value={hour} />
-    if (!firstOption) firstOption = option
+    if (!firstOption) {
+      firstOption = option
+    }
     timeInput.appendChild(option)
   })
 
@@ -189,8 +192,12 @@ dateInput.onchange = event => {
   }
   else {
     setTimeout(() => {
-      if (selectedWorkingSchedule.length === 1) firstOption.selected = true
-      else timeInputPlaceholder.selected = true
+      if (selectedWorkingSchedule.length === 1) {
+        firstOption.selected = true
+      }
+      else {
+        timeInputPlaceholder.selected = true
+      }
     })
   }
 }
@@ -200,6 +207,6 @@ if (window.selected) {
     (doctorInput as HTMLSelectElement).value = window.selected.doctor
     doctorInput.dispatchEvent(new Event('change', { bubbles: true }))
   }
-  (dateInput as HTMLSelectElement).value = window.selected.date
+  dateInput.value = window.selected.date
   dateInput.dispatchEvent(new Event('change', { bubbles: true }))
 }

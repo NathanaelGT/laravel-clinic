@@ -22,8 +22,12 @@ class Helpers
         $minutes = $time % 60;
         $hours = ($time - $minutes) / 60;
 
-        if ($minutes < 10) $minutes = '0' . $minutes;
-        if ($hours < 10) $hours = '0' . $hours;
+        if ($minutes < 10) {
+            $minutes = '0' . $minutes;
+        }
+        if ($hours < 10) {
+            $hours = '0' . $hours;
+        }
 
         return "$hours:$minutes";
     }
@@ -47,8 +51,11 @@ class Helpers
 
         $minutes = $slot % 60;
         $hours = ($slot - $minutes) / 60;
-        if (!$minutes) return "$hours jam";
-        if (!$hours) return "$minutes menit";
+        if (!$minutes) {
+            return "$hours jam";
+        } elseif (!$hours) {
+            return "$minutes menit";
+        }
         return "$hours jam $minutes menit";
     }
 
@@ -63,7 +70,9 @@ class Helpers
 
     public static function getPatientMeetHour($doctorWorktime, $patientAppointment)
     {
-        if (!is_array($patientAppointment)) $patientAppointment = $patientAppointment->toArray();
+        if (!is_array($patientAppointment)) {
+            $patientAppointment = $patientAppointment->toArray();
+        }
 
         $slotIndex = array_search(
             $patientAppointment['patient_id'],
@@ -120,8 +129,11 @@ class Helpers
                 $scheduleDate = $tomorrow->copy()->addDays($scheduleDayIndex);
 
                 $schedule['day'] = $scheduleDate->isoFormat('X');
-                if (isset($sortedDay[$scheduleDayIndex])) array_push($sortedDay[$scheduleDayIndex], $schedule);
-                else $sortedDay[$scheduleDayIndex] = [$schedule];
+                if (isset($sortedDay[$scheduleDayIndex])) {
+                    array_push($sortedDay[$scheduleDayIndex], $schedule);
+                } else {
+                    $sortedDay[$scheduleDayIndex] = [$schedule];
+                }
             }
             ksort($sortedDay);
 
@@ -145,15 +157,17 @@ class Helpers
                     }
 
                     $time = $schedule['day'];
-                    if ($schedule['id'] === $exceptionId) $time .= 'exception';
+                    if ($schedule['id'] === $exceptionId) {
+                        $time .= 'exception';
+                    }
 
                     $day = &$schedules[$index][$time];
 
                     if (sizeof($times)) {
-                        if (isset($day)) $day = array_merge($day, $times);
-                        else $day = $times;
+                        $day = isset($day) ? array_merge($day, $times) : $times;
+                    } else {
+                        unset($schedules[$index][$time]);
                     }
-                    else unset($schedules[$index][$time]);
                 }
             }
         }

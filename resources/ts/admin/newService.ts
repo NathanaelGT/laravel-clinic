@@ -25,9 +25,15 @@ const calculateQuota = (getSessionTime: boolean) => (
     const sessionTime = timeToNumber(_time[1]) - timeToNumber(_time[0])
     let perUnit: number
 
-    if (per === 'Menit') perUnit = 1
-    else if (per === 'Jam') perUnit = 60
-    else perUnit = sessionTime
+    if (per === 'Menit') {
+      perUnit = 1
+    }
+    else if (per === 'Jam') {
+      perUnit = 60
+    }
+    else {
+      perUnit = sessionTime
+    }
 
     const quota = (Number(time) * perUnit) / Number(number)
 
@@ -39,25 +45,40 @@ const calculateQuota = (getSessionTime: boolean) => (
 const searchValid = (index: number) => {
   const timeError: string[] = []
   for (let i = 0; i < 2; i++) {
-    if (!data.timeInputValue[index]?.[i]) timeError[i] = 'Harap tentukan waktu praktek'
+    if (!data.timeInputValue[index]?.[i]) {
+      timeError[i] = 'Harap tentukan waktu praktek'
+    }
   }
   const [start, end] = data.timeInputValue[index].map(timeToNumber)
-  if (start > end) timeError[0] = 'Waktu mulai lebih besar dari waktu selesai'
-  else if (start === end) timeError[0] = 'Waktu mulai tidak bisa sama dengan waktu selesai'
+  if (start > end) {
+    timeError[0] = 'Waktu mulai lebih besar dari waktu selesai'
+  }
+  else if (start === end) {
+    timeError[0] = 'Waktu mulai tidak bisa sama dengan waktu selesai'
+  }
 
   const dayInvalid = data.dayValue[index]?.filter(value => value !== '')?.length === 0
 
   let quotaErrorMessage: string
   const quota = data.quotaValue[index]
-  if (!quota.number) quotaErrorMessage = 'Harap tentukan kuota'
-  else if (!quota.time) quotaErrorMessage = 'Harap tentukan waktu kuota'
-  else if (!quota.per) quotaErrorMessage = 'Harap tentukan pembagian waktu kuota'
+  if (!quota.number) {
+    quotaErrorMessage = 'Harap tentukan kuota'
+  }
+  else if (!quota.time) {
+    quotaErrorMessage = 'Harap tentukan waktu kuota'
+  }
+  else if (!quota.per) {
+    quotaErrorMessage = 'Harap tentukan pembagian waktu kuota'
+  }
   else if (quota.per === 'Sesi' && Number(quota.time) !== 1) {
     quotaErrorMessage = 'Tidak bisa mengatur waktu lebih dari 1 sesi'
   }
   else {
     const [calculatedQuota, time] = calculateQuota(true)(quota, index) as number[]
-    if (calculatedQuota < 1) quotaErrorMessage = 'Waktu kuota terlalu sedikit'
+
+    if (calculatedQuota < 1) {
+      quotaErrorMessage = 'Waktu kuota terlalu sedikit'
+    }
     else if (time % calculatedQuota !== 0) {
       const fixed = Number((time % calculatedQuota).toFixed(2))
       quotaErrorMessage = 'Waktu kuota tidak bisa dibagi habis' + (fixed ? ` (sisa ${fixed} menit)` : '')
@@ -197,11 +218,17 @@ const data = {
           return res.text()
         })
         .then(res => {
-          try { return JSON.parse(res) }
-          catch { return res }
+          try {
+            return JSON.parse(res)
+          }
+          catch {
+            return res
+          }
         })
         .then(res => {
-          if (ok) window.location.href = res.redirect
+          if (ok) {
+            window.location.href = res.redirect
+          }
           else {
             alert(res)
             console.error(res)
